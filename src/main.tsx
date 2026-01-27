@@ -2,11 +2,13 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 
+import { LogtoProvider } from '@logto/react'
 import * as TanStackQueryProvider from './lib/tanstack-query/root-provider.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
+import { config } from './lib/logto/logto-provider.ts'
 import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
 
@@ -37,9 +39,11 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
+      <LogtoProvider config={config}>
+        <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
+          <RouterProvider router={router} />
+        </TanStackQueryProvider.Provider>
+      </LogtoProvider>
     </StrictMode>,
   )
 }
