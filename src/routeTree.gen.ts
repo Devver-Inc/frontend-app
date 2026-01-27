@@ -9,144 +9,104 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as unauthRouteRouteImport } from './routes/(unauth)/route'
-import { Route as authRouteRouteImport } from './routes/(auth)/route'
-import { Route as unauthRegisterIndexRouteImport } from './routes/(unauth)/register/index'
-import { Route as unauthLoginIndexRouteImport } from './routes/(unauth)/login/index'
-import { Route as authDashboardIndexRouteImport } from './routes/(auth)/dashboard/index'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as TestIndexRouteImport } from './routes/test/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as CallbackIndexRouteImport } from './routes/callback/index'
 
-const unauthRouteRoute = unauthRouteRouteImport.update({
-  id: '/(unauth)',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const authRouteRoute = authRouteRouteImport.update({
-  id: '/(auth)',
+const TestIndexRoute = TestIndexRouteImport.update({
+  id: '/test/',
+  path: '/test/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const unauthRegisterIndexRoute = unauthRegisterIndexRouteImport.update({
-  id: '/register/',
-  path: '/register/',
-  getParentRoute: () => unauthRouteRoute,
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const unauthLoginIndexRoute = unauthLoginIndexRouteImport.update({
-  id: '/login/',
-  path: '/login/',
-  getParentRoute: () => unauthRouteRoute,
-} as any)
-const authDashboardIndexRoute = authDashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
-  getParentRoute: () => authRouteRoute,
+const CallbackIndexRoute = CallbackIndexRouteImport.update({
+  id: '/callback/',
+  path: '/callback/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof unauthRouteRouteWithChildren
-  '/dashboard': typeof authDashboardIndexRoute
-  '/login': typeof unauthLoginIndexRoute
-  '/register': typeof unauthRegisterIndexRoute
+  '/': typeof IndexRoute
+  '/callback': typeof CallbackIndexRoute
+  '/profile': typeof ProfileIndexRoute
+  '/test': typeof TestIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof unauthRouteRouteWithChildren
-  '/dashboard': typeof authDashboardIndexRoute
-  '/login': typeof unauthLoginIndexRoute
-  '/register': typeof unauthRegisterIndexRoute
+  '/': typeof IndexRoute
+  '/callback': typeof CallbackIndexRoute
+  '/profile': typeof ProfileIndexRoute
+  '/test': typeof TestIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/(auth)': typeof authRouteRouteWithChildren
-  '/(unauth)': typeof unauthRouteRouteWithChildren
-  '/(auth)/dashboard/': typeof authDashboardIndexRoute
-  '/(unauth)/login/': typeof unauthLoginIndexRoute
-  '/(unauth)/register/': typeof unauthRegisterIndexRoute
+  '/': typeof IndexRoute
+  '/callback/': typeof CallbackIndexRoute
+  '/profile/': typeof ProfileIndexRoute
+  '/test/': typeof TestIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/register'
+  fullPaths: '/' | '/callback' | '/profile' | '/test'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/register'
-  id:
-    | '__root__'
-    | '/(auth)'
-    | '/(unauth)'
-    | '/(auth)/dashboard/'
-    | '/(unauth)/login/'
-    | '/(unauth)/register/'
+  to: '/' | '/callback' | '/profile' | '/test'
+  id: '__root__' | '/' | '/callback/' | '/profile/' | '/test/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  authRouteRoute: typeof authRouteRouteWithChildren
-  unauthRouteRoute: typeof unauthRouteRouteWithChildren
+  IndexRoute: typeof IndexRoute
+  CallbackIndexRoute: typeof CallbackIndexRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+  TestIndexRoute: typeof TestIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/(unauth)': {
-      id: '/(unauth)'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof unauthRouteRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(auth)': {
-      id: '/(auth)'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof authRouteRouteImport
+    '/test/': {
+      id: '/test/'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(unauth)/register/': {
-      id: '/(unauth)/register/'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof unauthRegisterIndexRouteImport
-      parentRoute: typeof unauthRouteRoute
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/(unauth)/login/': {
-      id: '/(unauth)/login/'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof unauthLoginIndexRouteImport
-      parentRoute: typeof unauthRouteRoute
-    }
-    '/(auth)/dashboard/': {
-      id: '/(auth)/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof authDashboardIndexRouteImport
-      parentRoute: typeof authRouteRoute
+    '/callback/': {
+      id: '/callback/'
+      path: '/callback'
+      fullPath: '/callback'
+      preLoaderRoute: typeof CallbackIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface authRouteRouteChildren {
-  authDashboardIndexRoute: typeof authDashboardIndexRoute
-}
-
-const authRouteRouteChildren: authRouteRouteChildren = {
-  authDashboardIndexRoute: authDashboardIndexRoute,
-}
-
-const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
-  authRouteRouteChildren,
-)
-
-interface unauthRouteRouteChildren {
-  unauthLoginIndexRoute: typeof unauthLoginIndexRoute
-  unauthRegisterIndexRoute: typeof unauthRegisterIndexRoute
-}
-
-const unauthRouteRouteChildren: unauthRouteRouteChildren = {
-  unauthLoginIndexRoute: unauthLoginIndexRoute,
-  unauthRegisterIndexRoute: unauthRegisterIndexRoute,
-}
-
-const unauthRouteRouteWithChildren = unauthRouteRoute._addFileChildren(
-  unauthRouteRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
-  authRouteRoute: authRouteRouteWithChildren,
-  unauthRouteRoute: unauthRouteRouteWithChildren,
+  IndexRoute: IndexRoute,
+  CallbackIndexRoute: CallbackIndexRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+  TestIndexRoute: TestIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
