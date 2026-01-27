@@ -1,5 +1,6 @@
 import { useHandleSignInCallback } from '@logto/react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { LoaderCircle } from 'lucide-react'
 import { useEffect } from 'react'
 
 export const Route = createFileRoute('/callback/')({
@@ -20,7 +21,11 @@ function CallbackRoute() {
   }, [isLoading, isAuthenticated, error, navigate])
 
   if (isLoading) {
-    return <div>Redirecting...</div>
+    return (
+      <div className="size-full h-screen grid place-items-center">
+        <LoaderCircle size={36} className="animate-spin" />
+      </div>
+    )
   }
 
   return null

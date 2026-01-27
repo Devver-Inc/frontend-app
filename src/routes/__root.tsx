@@ -3,11 +3,13 @@ import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { useLogto } from '@logto/react'
+import { LoaderCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import TanStackQueryDevtools from '../lib/devtools'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
+import { Footer } from '@/components/_utils/footer'
+import { Header } from '@/components/_utils/header'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -18,20 +20,27 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootComponent() {
-  const { signIn, signOut, isAuthenticated } = useLogto()
+  const { signIn, isAuthenticated, isLoading } = useLogto()
 
   useEffect(() => {
     if (!isAuthenticated) signIn('http://localhost:5173/callback')
   }, [isAuthenticated])
 
+  if (isLoading) {
+    return (
+      <div className="size-full h-screen grid place-items-center">
+        <LoaderCircle size={36} className="animate-spin" />
+      </div>
+    )
+  }
+
   return (
     <>
-      {isAuthenticated && (
-        <Button onClick={() => signOut('http://localhost:5173/')}>
-          Se deconnecter
-        </Button>
-      )}
-      <Outlet />
+      <Header />
+      <main className="min-h-screen">
+        <Outlet />
+      </main>
+      <Footer />
       <TanStackDevtools
         config={{
           position: 'bottom-left',

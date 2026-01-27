@@ -20,9 +20,5 @@ function RouteComponent() {
     })()
   }, [getIdTokenClaims, isAuthenticated])
 
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      {user?.name}
-    </div>
-  )
+  return <div className="">{JSON.stringify(user, null, 2)}</div>
 }
