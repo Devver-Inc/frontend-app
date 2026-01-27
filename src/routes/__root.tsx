@@ -17,14 +17,17 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
+  notFoundComponent: () => <div>404 - Not Found</div>,
 })
 
 function RootComponent() {
   const { signIn, isAuthenticated, isLoading } = useLogto()
 
   useEffect(() => {
-    if (!isAuthenticated) signIn('http://localhost:5173/callback')
-  }, [isAuthenticated])
+    if (!isLoading && !isAuthenticated) {
+      signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
+    }
+  }, [isLoading, isAuthenticated, signIn])
 
   if (isLoading) {
     return (

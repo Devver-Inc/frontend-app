@@ -1,5 +1,5 @@
-import { useHandleSignInCallback } from '@logto/react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useHandleSignInCallback, useLogto } from '@logto/react'
+import { createFileRoute } from '@tanstack/react-router'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect } from 'react'
 
@@ -8,17 +8,14 @@ export const Route = createFileRoute('/callback/')({
 })
 
 function CallbackRoute() {
-  const navigate = useNavigate()
-  const { isLoading, isAuthenticated, error } = useHandleSignInCallback()
+  const { isAuthenticated } = useLogto()
+  const { isLoading } = useHandleSignInCallback(() => {
+    window.location.replace('/')
+  })
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate({ to: '/' })
-    } else if (!isLoading && error) {
-      console.error('Authentication error:', error)
-      navigate({ to: '/' })
-    }
-  }, [isLoading, isAuthenticated, error, navigate])
+    if (isAuthenticated) window.location.replace('/')
+  }, [isAuthenticated, isLoading])
 
   if (isLoading) {
     return (

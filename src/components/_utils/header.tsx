@@ -39,18 +39,18 @@ export function Header() {
                   Dashboard
                 </Link>
                 <div className="flex items-center space-x-2 border-l pl-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center space-x-2"
+                  <Link
+                    to="/profile"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </Button>
+                    Profile
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => signOut(`${window.location.origin}/`)}
+                    onClick={() =>
+                      signOut(import.meta.env.VITE_LOGTO_SIGN_OUT_URI)
+                    }
                     className="flex items-center space-x-2 text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
                     <LogOut className="h-4 w-4" />

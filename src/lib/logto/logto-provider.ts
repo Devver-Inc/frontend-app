@@ -1,6 +1,7 @@
 import type { LogtoConfig } from '@logto/react'
 
 export const config: LogtoConfig = {
-  endpoint: 'https://auth.devver.app/',
-  appId: 'm55562mxu4si2gxpo64xd',
+  endpoint: import.meta.env.VITE_LOGTO_ENDPOINT,
+  appId: import.meta.env.VITE_LOGTO_APP_ID,
+  scopes: ['urn:logto:scope:organizations', 'profile', 'email'],
 }
