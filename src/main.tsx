@@ -37,10 +37,6 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  console.log(import.meta.env.VITE_LOGTO_ENDPOINT)
-  console.log(import.meta.env.VITE_LOGTO_CALLBACK_URI)
-  console.log(import.meta.env.VITE_LOGTO_SIGN_OUT_URI)
-  console.log(import.meta.env.VITE_LOGTO_APP_ID)
   root.render(
     <StrictMode>
       <LogtoProvider config={config}>
