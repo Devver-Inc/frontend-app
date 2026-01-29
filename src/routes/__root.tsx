@@ -22,6 +22,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootComponent() {
   const { signIn, isAuthenticated, isLoading } = useLogto()
+  const isProd = import.meta.env.PROD
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -44,18 +45,20 @@ function RootComponent() {
         <Outlet />
       </main>
       <Footer />
-      <TanStackDevtools
-        config={{
-          position: 'bottom-left',
-        }}
-        plugins={[
-          {
-            name: 'Tanstack Router',
-            render: <TanStackRouterDevtoolsPanel />,
-          },
-          TanStackQueryDevtools,
-        ]}
-      />
+      {isProd === false && (
+        <TanStackDevtools
+          config={{
+            position: 'bottom-left',
+          }}
+          plugins={[
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+            TanStackQueryDevtools,
+          ]}
+        />
+      )}
     </>
   )
 }
