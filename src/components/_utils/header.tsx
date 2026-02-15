@@ -38,6 +38,12 @@ export function Header() {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  to="/organizations/new"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  Create organization
+                </Link>
                 <div className="flex items-center space-x-2 border-l pl-4">
                   <Link
                     to="/profile"
@@ -101,6 +107,13 @@ export function Header() {
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    to="/organizations/new"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  >
+                    Create organization
                   </Link>
                   <Button variant="ghost" size="sm" className="justify-start">
                     <User className="mr-2 h-4 w-4" />
