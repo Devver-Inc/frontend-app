@@ -8,6 +8,7 @@ import * as TanStackQueryProvider from './lib/tanstack-query/root-provider.tsx'
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
+import { OrganizationProvider } from './lib/organization/organization-context'
 import { config } from './lib/logto/logto-provider.ts'
 import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
@@ -40,9 +41,11 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <LogtoProvider config={config}>
-        <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-          <RouterProvider router={router} />
-        </TanStackQueryProvider.Provider>
+        <OrganizationProvider>
+          <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
+            <RouterProvider router={router} />
+          </TanStackQueryProvider.Provider>
+        </OrganizationProvider>
       </LogtoProvider>
     </StrictMode>,
   )

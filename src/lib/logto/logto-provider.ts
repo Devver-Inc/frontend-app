@@ -9,5 +9,10 @@ export const config: LogtoConfig = {
     UserScope.Organizations,
     UserScope.Email,
     UserScope.Profile,
+    UserScope.OrganizationRoles,
+    UserScope.Roles,
+  ],
+  resources: [
+    import.meta.env.VITE_LOGTO_API_INDICATOR ?? 'http://localhost:3000/api/v1',
   ],
 }

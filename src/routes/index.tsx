@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { ProjectsListPage } from '@/components/pages/projects-list-page'
+
 export const Route = createFileRoute('/')({
-  component: RouteComponent,
+  component: HomeRoute,
 })
 
-function RouteComponent() {
-  return <div className="">Welcome to Devver.app</div>
+function HomeRoute() {
+  return <ProjectsListPage />
 }

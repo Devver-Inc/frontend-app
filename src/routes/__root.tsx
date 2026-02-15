@@ -6,10 +6,11 @@ import { useLogto } from '@logto/react'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import TanStackQueryDevtools from '../lib/devtools'
-
 import type { QueryClient } from '@tanstack/react-query'
-import { Footer } from '@/components/_utils/footer'
-import { Header } from '@/components/_utils/header'
+import { setApiClientOptions } from '@/lib/api/client'
+import { useOrganizationContext } from '@/lib/organization/organization-context'
+
+import { DashboardShell } from '@/components/layout/dashboard-shell'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -21,7 +22,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootComponent() {
-  const { signIn, isAuthenticated, isLoading } = useLogto()
+  const { signIn, isAuthenticated, isLoading, getAccessToken } = useLogto()
+  const { getOrganizationId } = useOrganizationContext()
   const isProd = import.meta.env.PROD
 
   useEffect(() => {
@@ -30,21 +32,37 @@ function RootComponent() {
     }
   }, [isLoading, isAuthenticated, signIn])
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      setApiClientOptions({ getAccessToken, getOrganizationId })
+    }
+  }, [isAuthenticated, getAccessToken, getOrganizationId])
+
   if (isLoading) {
     return (
-      <div className="size-full h-screen grid place-items-center">
-        <LoaderCircle size={36} className="animate-spin" />
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[var(--background)]"
+        aria-live="polite"
+        aria-label="Loading"
+      >
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)]"
+          aria-hidden
+        >
+          <LoaderCircle size={24} className="animate-spin" />
+        </div>
+        <p className="text-sm font-medium text-[var(--muted-foreground)]">
+          Loading…
+        </p>
       </div>
     )
   }
 
   return (
     <>
-      <Header />
-      <main className="min-h-screen">
+      <DashboardShell>
         <Outlet />
-      </main>
-      <Footer />
+      </DashboardShell>
       {isProd === false && (
         <TanStackDevtools
           config={{
