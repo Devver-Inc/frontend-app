@@ -10,18 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TestIndexRouteImport } from './routes/test/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as CallbackIndexRouteImport } from './routes/callback/index'
+import { Route as OrganizationsNewRouteImport } from './routes/organizations/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestIndexRoute = TestIndexRouteImport.update({
-  id: '/test/',
-  path: '/test/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileIndexRoute = ProfileIndexRouteImport.update({
@@ -34,39 +29,44 @@ const CallbackIndexRoute = CallbackIndexRouteImport.update({
   path: '/callback/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrganizationsNewRoute = OrganizationsNewRouteImport.update({
+  id: '/organizations/new',
+  path: '/organizations/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/organizations/new': typeof OrganizationsNewRoute
   '/callback': typeof CallbackIndexRoute
   '/profile': typeof ProfileIndexRoute
-  '/test': typeof TestIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/organizations/new': typeof OrganizationsNewRoute
   '/callback': typeof CallbackIndexRoute
   '/profile': typeof ProfileIndexRoute
-  '/test': typeof TestIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/organizations/new': typeof OrganizationsNewRoute
   '/callback/': typeof CallbackIndexRoute
   '/profile/': typeof ProfileIndexRoute
-  '/test/': typeof TestIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/callback' | '/profile' | '/test'
+  fullPaths: '/' | '/organizations/new' | '/callback' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/callback' | '/profile' | '/test'
-  id: '__root__' | '/' | '/callback/' | '/profile/' | '/test/'
+  to: '/' | '/organizations/new' | '/callback' | '/profile'
+  id: '__root__' | '/' | '/organizations/new' | '/callback/' | '/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OrganizationsNewRoute: typeof OrganizationsNewRoute
   CallbackIndexRoute: typeof CallbackIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
-  TestIndexRoute: typeof TestIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,13 +76,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test/': {
-      id: '/test/'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof TestIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/': {
@@ -99,14 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CallbackIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organizations/new': {
+      id: '/organizations/new'
+      path: '/organizations/new'
+      fullPath: '/organizations/new'
+      preLoaderRoute: typeof OrganizationsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OrganizationsNewRoute: OrganizationsNewRoute,
   CallbackIndexRoute: CallbackIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
-  TestIndexRoute: TestIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

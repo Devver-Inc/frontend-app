@@ -10,11 +10,11 @@ export const Route = createFileRoute('/callback/')({
 function CallbackRoute() {
   const { isAuthenticated } = useLogto()
   const { isLoading } = useHandleSignInCallback(() => {
-    window.location.replace('/')
+    globalThis.location.replace('/')
   })
 
   useEffect(() => {
-    if (isAuthenticated) window.location.replace('/')
+    if (isAuthenticated) globalThis.location.replace('/')
   }, [isAuthenticated, isLoading])
 
   if (isLoading) {

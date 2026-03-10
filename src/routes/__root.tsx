@@ -10,6 +10,9 @@ import TanStackQueryDevtools from '../lib/devtools'
 import type { QueryClient } from '@tanstack/react-query'
 import { Footer } from '@/components/_utils/footer'
 import { Header } from '@/components/_utils/header'
+import { setApiClientOptions } from '@/lib/api/client'
+import { useOrganizationContext } from '@/lib/organization/organization-context'
+import { useLoadOrganizationsFromToken } from '@/lib/auth/useUserOrganizations'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -21,7 +24,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootComponent() {
-  const { signIn, isAuthenticated, isLoading } = useLogto()
+  const { signIn, isAuthenticated, isLoading, getAccessToken } = useLogto()
+  const { getOrganizationId } = useOrganizationContext()
   const isProd = import.meta.env.PROD
 
   useEffect(() => {
@@ -29,6 +33,13 @@ function RootComponent() {
       signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
     }
   }, [isLoading, isAuthenticated, signIn])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    setApiClientOptions({ getAccessToken, getOrganizationId })
+  }, [isAuthenticated, getAccessToken, getOrganizationId])
+
+  useLoadOrganizationsFromToken()
 
   if (isLoading) {
     return (

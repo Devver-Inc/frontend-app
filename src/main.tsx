@@ -4,12 +4,12 @@ import ReactDOM from 'react-dom/client'
 
 import { LogtoProvider } from '@logto/react'
 import * as TanStackQueryProvider from './lib/tanstack-query/root-provider.tsx'
+import { OrganizationProvider } from './lib/organization/organization-context.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import { config } from './lib/logto/logto-provider.ts'
-import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
 
 // Create a new router instance
@@ -41,14 +41,11 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <LogtoProvider config={config}>
         <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-          <RouterProvider router={router} />
+          <OrganizationProvider>
+            <RouterProvider router={router} />
+          </OrganizationProvider>
         </TanStackQueryProvider.Provider>
       </LogtoProvider>
     </StrictMode>,
   )
 }
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals()
