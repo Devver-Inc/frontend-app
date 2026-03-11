@@ -19,9 +19,10 @@ type OrganizationContextValue = {
   currentOrganizationId: string | null
   setCurrentOrganizationId: (id: string | null) => void
   getOrganizationId: () => string | null
-  organizations: OrganizationLight[]
-  setOrganizations: (orgs: OrganizationLight[]) => void
+  organizations: Array<OrganizationLight>
+  setOrganizations: (orgs: Array<OrganizationLight>) => void
   addOrganization: (org: OrganizationLight) => void
+  removeOrganization: (id: string) => void
 }
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null)
@@ -32,11 +33,14 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   const [currentOrganizationId, setCurrentOrganizationId] = useState<
     string | null
   >(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (globalThis.window === undefined) return null
     return globalThis.localStorage.getItem(STORAGE_KEY)
   })
 
-  const [organizations, setOrganizations] = useState<OrganizationLight[]>([])
+  const [organizations, setOrganizations] = useState<Array<OrganizationLight>>(
+    [],
+  )
 
   const ref = useRef<string | null>(currentOrganizationId)
   ref.current = currentOrganizationId
@@ -67,6 +71,10 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
     })
   }, [])
 
+  const removeOrganization = useCallback((id: string) => {
+    setOrganizations((prev) => prev.filter((o) => o.id !== id))
+  }, [])
+
   const value = useMemo<OrganizationContextValue>(
     () => ({
       currentOrganizationId,
@@ -75,6 +83,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       organizations,
       setOrganizations,
       addOrganization,
+      removeOrganization,
     }),
     [
       currentOrganizationId,
@@ -82,6 +91,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       getOrganizationId,
       organizations,
       addOrganization,
+      removeOrganization,
     ],
   )
 

@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Building2 } from 'lucide-react'
 
 import { createOrganization } from '@/lib/api/organizations'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 
 export const Route = createFileRoute('/organizations/new')({
   component: RouteComponent,
@@ -19,7 +22,7 @@ function RouteComponent() {
   const { addOrganization, setCurrentOrganizationId } = useOrganizationContext()
   const navigate = useNavigate()
 
-  const { mutate, isPending, isSuccess, isError, error } = useMutation({
+  const { mutate, isPending, isError, error } = useMutation({
     mutationFn: () =>
       createOrganization({
         name,
@@ -40,82 +43,81 @@ function RouteComponent() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col gap-6 px-4 py-10">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-          Create an organization
-        </h1>
-        <p className="text-sm text-gray-600">
-          Give your organization a name, an optional description, and an optional logo.
-        </p>
-      </header>
-
-      <form className="space-y-6 rounded-xl border bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
-        <div className="space-y-1.5">
-          <label
-            htmlFor="org-name"
-            className="text-sm font-medium text-gray-800 after:ml-0.5 after:text-red-500 after:content-['*']"
-          >
-            Organization name
-          </label>
-          <Input
-            id="org-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Acme Inc."
-            required
-          />
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 py-10">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+          <Building2 className="h-5 w-5 text-muted-foreground" />
         </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="org-description" className="text-sm font-medium text-gray-800">
-            Description
-          </label>
-          <Textarea
-            id="org-description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="What is this organization about?"
-            rows={4}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="org-logo" className="text-sm font-medium text-gray-800">
-            Logo (optional)
-          </label>
-          <input
-            id="org-logo"
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              setLogoFile(file ?? null)
-            }}
-            className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 file:hover:bg-gray-200"
-          />
-          <p className="text-xs text-gray-500">
-            PNG, JPG, WEBP or SVG. The image will be resized automatically.
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Create an organization
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Give your organization a name, an optional description, and a logo.
           </p>
         </div>
+      </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" disabled={isPending || !name.trim()}>
-            {isPending ? 'Creating…' : 'Create organization'}
-          </Button>
-          {isSuccess && (
-            <p className="text-sm font-medium text-green-600">
-              Organization created successfully.
-            </p>
-          )}
-          {isError && (
-            <p className="text-sm font-medium text-red-600">
-              {error instanceof Error ? error.message : 'Failed to create organization.'}
-            </p>
-          )}
-        </div>
-      </form>
+      <Card className="border-border/50">
+        <CardContent className="pt-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="org-name">
+                Organization name{' '}
+                <span className="text-destructive-foreground">*</span>
+              </Label>
+              <Input
+                id="org-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Acme Inc."
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="org-description">Description</Label>
+              <Textarea
+                id="org-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What is this organization about?"
+                rows={4}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="org-logo">Logo (optional)</Label>
+              <input
+                id="org-logo"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  setLogoFile(file ?? null)
+                }}
+                className="block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground file:hover:bg-accent"
+              />
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG, WEBP or SVG. The image will be resized automatically.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={isPending || !name.trim()}>
+                {isPending ? 'Creating...' : 'Create organization'}
+              </Button>
+              {isError && (
+                <p className="text-sm font-medium text-destructive-foreground">
+                  {error instanceof Error
+                    ? error.message
+                    : 'Failed to create organization.'}
+                </p>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
-

@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as CallbackIndexRouteImport } from './routes/callback/index'
 import { Route as OrganizationsNewRouteImport } from './routes/organizations/new'
+import { Route as OrganizationSettingsRouteImport } from './routes/organization/settings'
+import { Route as OrganizationMembersRouteImport } from './routes/organization/members'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,15 +36,29 @@ const OrganizationsNewRoute = OrganizationsNewRouteImport.update({
   path: '/organizations/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrganizationSettingsRoute = OrganizationSettingsRouteImport.update({
+  id: '/organization/settings',
+  path: '/organization/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrganizationMembersRoute = OrganizationMembersRouteImport.update({
+  id: '/organization/members',
+  path: '/organization/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/organization/members': typeof OrganizationMembersRoute
+  '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
   '/callback': typeof CallbackIndexRoute
   '/profile': typeof ProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/organization/members': typeof OrganizationMembersRoute
+  '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
   '/callback': typeof CallbackIndexRoute
   '/profile': typeof ProfileIndexRoute
@@ -50,20 +66,43 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/organization/members': typeof OrganizationMembersRoute
+  '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
   '/callback/': typeof CallbackIndexRoute
   '/profile/': typeof ProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/organizations/new' | '/callback' | '/profile'
+  fullPaths:
+    | '/'
+    | '/organization/members'
+    | '/organization/settings'
+    | '/organizations/new'
+    | '/callback'
+    | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/organizations/new' | '/callback' | '/profile'
-  id: '__root__' | '/' | '/organizations/new' | '/callback/' | '/profile/'
+  to:
+    | '/'
+    | '/organization/members'
+    | '/organization/settings'
+    | '/organizations/new'
+    | '/callback'
+    | '/profile'
+  id:
+    | '__root__'
+    | '/'
+    | '/organization/members'
+    | '/organization/settings'
+    | '/organizations/new'
+    | '/callback/'
+    | '/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OrganizationMembersRoute: typeof OrganizationMembersRoute
+  OrganizationSettingsRoute: typeof OrganizationSettingsRoute
   OrganizationsNewRoute: typeof OrganizationsNewRoute
   CallbackIndexRoute: typeof CallbackIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
@@ -99,11 +138,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizationsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organization/settings': {
+      id: '/organization/settings'
+      path: '/organization/settings'
+      fullPath: '/organization/settings'
+      preLoaderRoute: typeof OrganizationSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/organization/members': {
+      id: '/organization/members'
+      path: '/organization/members'
+      fullPath: '/organization/members'
+      preLoaderRoute: typeof OrganizationMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OrganizationMembersRoute: OrganizationMembersRoute,
+  OrganizationSettingsRoute: OrganizationSettingsRoute,
   OrganizationsNewRoute: OrganizationsNewRoute,
   CallbackIndexRoute: CallbackIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,

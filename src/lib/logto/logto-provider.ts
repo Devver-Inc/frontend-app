@@ -10,7 +10,5 @@ export const config: LogtoConfig = {
     UserScope.Email,
     UserScope.Profile,
   ],
-  resources: [
-    import.meta.env.VITE_API_BASE_URL,
-  ],
+  resources: [import.meta.env.VITE_API_BASE_URL],
 }

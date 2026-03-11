@@ -1,7 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
-const API_INDICATOR =
-  import.meta.env.VITE_LOGTO_API_INDICATOR ?? API_BASE
+const API_INDICATOR = import.meta.env.VITE_LOGTO_API_INDICATOR ?? API_BASE
 
 export type ApiClientOptions = {
   getAccessToken: (
@@ -11,10 +10,9 @@ export type ApiClientOptions = {
   getOrganizationId?: () => string | null
 }
 
-let getAccessTokenFn: (
-  resource?: string,
-  organizationId?: string,
-) => Promise<string | undefined>
+let getAccessTokenFn:
+  | ((resource?: string, organizationId?: string) => Promise<string | undefined>)
+  | undefined
 let getOrganizationIdFn: (() => string | null) | undefined
 
 export function setApiClientOptions(options: ApiClientOptions) {

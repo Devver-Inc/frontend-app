@@ -1,7 +1,6 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
 
 import { useOrganizationContext } from '@/lib/organization/organization-context'
-import { Button } from '@/components/ui/button'
 
 export function OrganizationSwitcher() {
   const { currentOrganizationId, setCurrentOrganizationId, organizations } =
@@ -9,15 +8,7 @@ export function OrganizationSwitcher() {
 
   const current =
     organizations.find((org) => org.id === currentOrganizationId) ??
-    organizations[0] ??
-    null
-
-  let label = 'Select organization'
-  if (current) {
-    label = current.name
-  } else if (organizations.length === 0) {
-    label = 'No organization'
-  }
+    (organizations.length > 0 ? organizations[0] : undefined)
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value || null
@@ -25,39 +16,24 @@ export function OrganizationSwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <label
-        htmlFor="org-switcher"
-        className="hidden text-sm font-medium text-gray-700 lg:inline"
+    <div className="relative">
+      <select
+        id="org-switcher"
+        className="w-full cursor-pointer appearance-none truncate rounded-lg border border-sidebar-border bg-sidebar-accent/50 py-2 pl-3 pr-8 text-sm text-sidebar-foreground transition-colors focus:border-sidebar-ring focus:outline-none"
+        value={current?.id ?? ''}
+        onChange={handleChange}
+        disabled={organizations.length === 0}
       >
-        Organization
-      </label>
-      <div className="relative inline-flex items-center">
-        <select
-          id="org-switcher"
-          className="appearance-none rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-8 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={current?.id ?? ''}
-          onChange={handleChange}
-          disabled={organizations.length === 0}
-        >
-          {organizations.length === 0 && <option value="">{label}</option>}
-          {organizations.length > 0 &&
-            organizations.map((org) => (
-              <option key={org.id} value={org.id}>
-                {org.name}
-              </option>
-            ))}
-        </select>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="pointer-events-none absolute right-0 h-7 w-7 text-gray-500"
-          aria-hidden
-        >
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </div>
+        {organizations.length === 0 && (
+          <option value="">No organization</option>
+        )}
+        {organizations.map((org) => (
+          <option key={org.id} value={org.id}>
+            {org.name}
+          </option>
+        ))}
+      </select>
+      <ChevronsUpDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/40" />
     </div>
   )
 }

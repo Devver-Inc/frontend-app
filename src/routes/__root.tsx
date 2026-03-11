@@ -4,12 +4,11 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { useLogto } from '@logto/react'
 import { LoaderCircle } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import TanStackQueryDevtools from '../lib/devtools'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { Footer } from '@/components/_utils/footer'
-import { Header } from '@/components/_utils/header'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { setApiClientOptions } from '@/lib/api/client'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 import { useLoadOrganizationsFromToken } from '@/lib/auth/useUserOrganizations'
@@ -28,6 +27,9 @@ function RootComponent() {
   const { getOrganizationId } = useOrganizationContext()
   const isProd = import.meta.env.PROD
 
+  const getAccessTokenRef = useRef(getAccessToken)
+  getAccessTokenRef.current = getAccessToken
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
@@ -36,31 +38,33 @@ function RootComponent() {
 
   useEffect(() => {
     if (!isAuthenticated) return
-    setApiClientOptions({ getAccessToken, getOrganizationId })
-  }, [isAuthenticated, getAccessToken, getOrganizationId])
+    setApiClientOptions({
+      getAccessToken: (...args) => getAccessTokenRef.current(...args),
+      getOrganizationId,
+    })
+  }, [isAuthenticated, getOrganizationId])
 
   useLoadOrganizationsFromToken()
 
-  if (isLoading) {
+  if (isLoading && !isAuthenticated) {
     return (
-      <div className="size-full h-screen grid place-items-center">
-        <LoaderCircle size={36} className="animate-spin" />
+      <div className="grid h-screen place-items-center bg-background">
+        <LoaderCircle
+          size={36}
+          className="animate-spin text-muted-foreground"
+        />
       </div>
     )
   }
 
   return (
     <>
-      <Header />
-      <main className="min-h-screen">
+      <DashboardLayout>
         <Outlet />
-      </main>
-      <Footer />
+      </DashboardLayout>
       {isProd === false && (
         <TanStackDevtools
-          config={{
-            position: 'bottom-left',
-          }}
+          config={{ position: 'bottom-left' }}
           plugins={[
             {
               name: 'Tanstack Router',

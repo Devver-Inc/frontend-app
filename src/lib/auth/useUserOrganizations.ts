@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLogto } from '@logto/react'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 
@@ -25,18 +25,26 @@ export function useLoadOrganizationsFromToken() {
   const { isAuthenticated, getAccessToken } = useLogto()
   const { setOrganizations } = useOrganizationContext()
 
+  const getAccessTokenRef = useRef(getAccessToken)
+  getAccessTokenRef.current = getAccessToken
+
+  const hasLoaded = useRef(false)
+
   useEffect(() => {
-    let cancelled = false
-    const load = async () => {
-      if (!isAuthenticated) {
-        setOrganizations([])
-        return
-      }
+    if (!isAuthenticated) {
+      hasLoaded.current = false
+      return
+    }
+    if (hasLoaded.current) return
+
+    const abortController = new AbortController()
+
+    const load = async (signal: AbortSignal) => {
       try {
-        const token =
-          (await getAccessToken(import.meta.env.VITE_API_BASE_URL)) ??
-          undefined
-        if (!token || cancelled) return
+        const token = await getAccessTokenRef.current(
+          import.meta.env.VITE_API_BASE_URL,
+        )
+        if (!token || signal.aborted) return
         const payload = decodeJwtPayload(token) as {
           organizations?: Array<{ id: string; name: string }>
         }
@@ -45,16 +53,18 @@ export function useLoadOrganizationsFromToken() {
             id: org.id,
             name: org.name,
           })) ?? []
-        if (!cancelled) {
+        if (!signal.aborted) {
+          hasLoaded.current = true
           setOrganizations(orgs)
         }
       } catch {
         // token fetch failed, leave orgs as-is
       }
     }
-    void load()
+    void load(abortController.signal)
+
     return () => {
-      cancelled = true
+      abortController.abort()
     }
-  }, [getAccessToken, isAuthenticated, setOrganizations])
+  }, [isAuthenticated, setOrganizations])
 }
