@@ -1,0 +1,138 @@
+import { apiFetch, apiJson } from './client'
+
+export type ProjectRepo = {
+  id: string
+  name: string
+  pushUrl: string
+  projectId: string
+  createdAt: string
+}
+
+export type DeploymentServiceConfig = {
+  root?: string
+  install?: string
+  build: string
+  start: string
+  depends?: Array<string>
+}
+
+export type ProjectDeployment = {
+  id: string
+  repo: string
+  branch: string
+  commit: string | null
+  services: Record<string, DeploymentServiceConfig>
+  status: 'deployed' | 'failed' | 'removed'
+  createdAt: string
+  updatedAt: string
+}
+
+export type DeploymentLogEntry = {
+  service: string
+  level: string
+  message: string
+  timestamp: string
+}
+
+export type DeploymentLogs = {
+  logs: Array<DeploymentLogEntry>
+}
+
+export type RestoreDeployAgentStateResponse = {
+  restoredRepos: number
+  restoredDeployments: number
+}
+
+export type CreateProjectRepoInput = {
+  name: string
+}
+
+export type CreateDeploymentInput = {
+  repo: string
+  branch: string
+  commit?: string
+  services: Record<string, DeploymentServiceConfig>
+  links?: Record<string, Record<string, string>>
+  env?: Record<string, Record<string, string>>
+}
+
+export async function getProjectRepos(
+  projectId: string,
+): Promise<Array<ProjectRepo>> {
+  return apiJson<Array<ProjectRepo>>(`/projects/${projectId}/repos`)
+}
+
+export async function createProjectRepo(
+  projectId: string,
+  input: CreateProjectRepoInput,
+): Promise<ProjectRepo> {
+  return apiJson<ProjectRepo>(`/projects/${projectId}/repos`, {
+    method: 'POST',
+    body: input,
+  })
+}
+
+export async function deleteProjectRepo(
+  projectId: string,
+  name: string,
+): Promise<void> {
+  const res = await apiFetch(
+    `/projects/${projectId}/repos/${encodeURIComponent(name)}`,
+    { method: 'DELETE' },
+  )
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`API ${res.status}: ${text || res.statusText}`)
+  }
+}
+
+export async function getProjectDeployments(
+  projectId: string,
+): Promise<Array<ProjectDeployment>> {
+  return apiJson<Array<ProjectDeployment>>(`/projects/${projectId}/deployments`)
+}
+
+export async function createProjectDeployment(
+  projectId: string,
+  input: CreateDeploymentInput,
+): Promise<ProjectDeployment> {
+  return apiJson<ProjectDeployment>(`/projects/${projectId}/deployments`, {
+    method: 'POST',
+    body: input,
+  })
+}
+
+export async function deleteProjectDeployment(
+  projectId: string,
+  repo: string,
+  branch: string,
+): Promise<void> {
+  const res = await apiFetch(
+    `/projects/${projectId}/deployments/${encodeURIComponent(repo)}/${encodeURIComponent(branch)}`,
+    { method: 'DELETE' },
+  )
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`API ${res.status}: ${text || res.statusText}`)
+  }
+}
+
+export async function getProjectDeploymentLogs(
+  projectId: string,
+  deploymentId: string,
+): Promise<DeploymentLogs> {
+  return apiJson<DeploymentLogs>(
+    `/projects/${projectId}/deployments/${deploymentId}/logs`,
+  )
+}
+
+export async function restoreProjectDeployAgentState(
+  projectId: string,
+): Promise<RestoreDeployAgentStateResponse> {
+  return apiJson<RestoreDeployAgentStateResponse>(
+    `/projects/${projectId}/deploy-agent/restore`,
+    {
+      method: 'POST',
+    },
+  )
+}

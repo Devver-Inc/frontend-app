@@ -63,6 +63,7 @@ export async function updateOrganization(
   if (input.description !== undefined)
     formData.append('description', input.description)
   if (input.logoFile) formData.append('logoFile', input.logoFile)
+  if (input.removeLogo) formData.append('removeLogo', 'true')
 
   return apiJson<OrganizationLight>('/organizations', {
     method: 'PATCH',

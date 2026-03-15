@@ -31,9 +31,12 @@ export type GetProjectDto = GetProjectLightDto & {
 
 export type PaginatedResponse<T> = {
   data: Array<T>
-  total: number
-  page: number
-  pageSize: number
+  meta: {
+    currentPage: number
+    totalItemsCount: number
+    totalPagesCount: number
+    itemsPerPage: number
+  }
 }
 
 export type CreateProjectInput = {
@@ -46,6 +49,10 @@ export type CreateProjectInput = {
 
 export type UpdateProjectInput = Partial<CreateProjectInput>
 
+export type AddProjectMembersInput = {
+  userIds: Array<string>
+}
+
 export async function getProjects(params?: {
   page?: number
   pageSize?: number
@@ -54,8 +61,8 @@ export async function getProjects(params?: {
   sortDirection?: string
 }): Promise<PaginatedResponse<GetProjectLightDto>> {
   const qs = new URLSearchParams()
-  if (params?.page) qs.set('page', String(params.page))
-  if (params?.pageSize) qs.set('pageSize', String(params.pageSize))
+  if (params?.page != null) qs.set('page', String(params.page))
+  if (params?.pageSize != null) qs.set('pageSize', String(params.pageSize))
   if (params?.search) qs.set('search', params.search)
   if (params?.sortBy) qs.set('sortBy', params.sortBy)
   if (params?.sortDirection) qs.set('sortDirection', params.sortDirection)
@@ -93,4 +100,23 @@ export async function deleteProject(projectId: string): Promise<void> {
     const text = await res.text()
     throw new Error(`API ${res.status}: ${text || res.statusText}`)
   }
+}
+
+export async function addProjectMembers(
+  projectId: string,
+  input: AddProjectMembersInput,
+): Promise<GetProjectDto> {
+  return apiJson<GetProjectDto>(`/projects/${projectId}/members`, {
+    method: 'POST',
+    body: input,
+  })
+}
+
+export async function removeProjectMember(
+  projectId: string,
+  userId: string,
+): Promise<GetProjectDto> {
+  return apiJson<GetProjectDto>(`/projects/${projectId}/members/${userId}`, {
+    method: 'DELETE',
+  })
 }

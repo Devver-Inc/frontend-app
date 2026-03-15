@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
 
 export const Route = createFileRoute('/organizations/new')({
   component: RouteComponent,
@@ -44,22 +45,17 @@ function RouteComponent() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 py-10">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-          <Building2 className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Create an organization
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Give your organization a name, an optional description, and a logo.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Create an organization"
+        description="Give your organization a name, an optional description, and a logo."
+        icon={Building2}
+      />
 
-      <Card className="border-border/50">
-        <CardContent className="pt-6">
+      <Card className="glass-surface border-border/50">
+        <CardHeader>
+          <CardTitle className="text-base">Organization Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="org-name">
@@ -96,7 +92,7 @@ function RouteComponent() {
                   const file = e.target.files?.[0]
                   setLogoFile(file ?? null)
                 }}
-                className="block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground file:hover:bg-accent"
+                className="block w-full text-sm text-foreground file:mr-3 file:rounded-md file:border file:border-border/70 file:bg-glass-surface-strong file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground file:hover:bg-accent"
               />
               <p className="text-xs text-muted-foreground">
                 PNG, JPG, WEBP or SVG. The image will be resized automatically.

@@ -1,4 +1,5 @@
 import { useLogto } from '@logto/react'
+import { Link } from '@tanstack/react-router'
 import { ChevronsUpDown, LogOut, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -10,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 
 export function SidebarUser() {
   const { signOut, getIdTokenClaims } = useLogto()
@@ -49,9 +51,10 @@ export function SidebarUser() {
     <div className="border-t border-sidebar-border px-3 py-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button
             type="button"
-            className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-sidebar-accent"
+            variant="ghost"
+            className="h-auto w-full items-center gap-3 px-2 py-1.5 text-left text-sm hover:bg-sidebar-accent"
           >
             <Avatar className="h-8 w-8">
               <AvatarImage src={user.picture ?? undefined} />
@@ -70,14 +73,14 @@ export function SidebarUser() {
               )}
             </div>
             <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-foreground/40" />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-56">
           <DropdownMenuItem asChild>
-            <a href="/profile" className="flex items-center gap-2">
+            <Link to="/profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

@@ -34,10 +34,8 @@ export function useUpdateOrganization() {
 
   return useMutation({
     mutationFn: (input: UpdateOrganizationInput) => updateOrganization(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['organization', currentOrganizationId],
-      })
+    onSuccess: (data) => {
+      queryClient.setQueryData(['organization', currentOrganizationId], data)
       queryClient.invalidateQueries({
         queryKey: ['organization-details', currentOrganizationId],
       })

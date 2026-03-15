@@ -1,11 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateProjectInput } from '@/lib/api/projects'
+import type {
+  AddProjectMembersInput,
+  CreateProjectInput,
+  UpdateProjectInput,
+} from '@/lib/api/projects'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 import {
+  addProjectMembers,
   createProject,
   deleteProject,
   getProject,
   getProjects,
+  removeProjectMember,
+  updateProject,
 } from '@/lib/api/projects'
 
 export function useProjects(params?: {
@@ -51,6 +58,24 @@ export function useCreateProject() {
   })
 }
 
+export function useUpdateProject(projectId: string) {
+  const queryClient = useQueryClient()
+  const { currentOrganizationId } = useOrganizationContext()
+
+  return useMutation({
+    mutationFn: (input: UpdateProjectInput) => updateProject(projectId, input),
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        ['project', currentOrganizationId, projectId],
+        data,
+      )
+      queryClient.invalidateQueries({
+        queryKey: ['projects', currentOrganizationId],
+      })
+    },
+  })
+}
+
 export function useDeleteProject() {
   const queryClient = useQueryClient()
   const { currentOrganizationId } = useOrganizationContext()
@@ -61,6 +86,37 @@ export function useDeleteProject() {
       queryClient.invalidateQueries({
         queryKey: ['projects', currentOrganizationId],
       })
+    },
+  })
+}
+
+export function useAddProjectMembers(projectId: string) {
+  const queryClient = useQueryClient()
+  const { currentOrganizationId } = useOrganizationContext()
+
+  return useMutation({
+    mutationFn: (input: AddProjectMembersInput) =>
+      addProjectMembers(projectId, input),
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        ['project', currentOrganizationId, projectId],
+        data,
+      )
+    },
+  })
+}
+
+export function useRemoveProjectMember(projectId: string) {
+  const queryClient = useQueryClient()
+  const { currentOrganizationId } = useOrganizationContext()
+
+  return useMutation({
+    mutationFn: (userId: string) => removeProjectMember(projectId, userId),
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        ['project', currentOrganizationId, projectId],
+        data,
+      )
     },
   })
 }

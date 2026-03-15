@@ -11,7 +11,10 @@ export type ApiClientOptions = {
 }
 
 let getAccessTokenFn:
-  | ((resource?: string, organizationId?: string) => Promise<string | undefined>)
+  | ((
+      resource?: string,
+      organizationId?: string,
+    ) => Promise<string | undefined>)
   | undefined
 let getOrganizationIdFn: (() => string | null) | undefined
 

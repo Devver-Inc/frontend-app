@@ -49,8 +49,8 @@ export async function getOrganizationMembers(params?: {
   rolesFilter?: Array<string>
 }): Promise<PaginatedMembers> {
   const qs = new URLSearchParams()
-  if (params?.page) qs.set('page', String(params.page))
-  if (params?.pageSize) qs.set('pageSize', String(params.pageSize))
+  if (params?.page != null) qs.set('page', String(params.page))
+  if (params?.pageSize != null) qs.set('pageSize', String(params.pageSize))
   if (params?.search) qs.set('search', params.search)
   if (params?.rolesFilter) {
     for (const role of params.rolesFilter) {

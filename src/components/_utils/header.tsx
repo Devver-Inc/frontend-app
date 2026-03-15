@@ -11,14 +11,18 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white shadow-sm">
+    <header className="glass-surface sticky top-0 z-50 border-b border-border/70">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
-              <span className="text-lg font-bold text-white">D</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg">
+              <img
+                src="/logo.png"
+                alt="Devver Logo"
+                className="h-8 w-8 object-contain"
+              />
             </div>
-            <span className="text-xl font-bold text-gray-900">Devver</span>
+            <span className="text-xl font-bold text-foreground">Devver</span>
           </Link>
 
           <nav className="hidden md:flex md:items-center md:space-x-6">
@@ -27,20 +31,20 @@ export function Header() {
                 <OrganizationSwitcher />
                 <Link
                   to="/"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
                 >
                   Home
                 </Link>
                 <Link
                   to="/organizations/new"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
                 >
                   New organization
                 </Link>
                 <div className="flex items-center space-x-2 border-l pl-4">
                   <Link
                     to="/profile"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
                   >
                     Profile
                   </Link>
@@ -50,7 +54,7 @@ export function Header() {
                     onClick={() =>
                       signOut(import.meta.env.VITE_LOGTO_SIGN_OUT_URI)
                     }
-                    className="flex items-center space-x-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="flex items-center space-x-2 text-destructive-foreground hover:bg-destructive/15 hover:text-destructive-foreground"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Sign Out</span>
@@ -88,21 +92,21 @@ export function Header() {
                   <Link
                     to="/"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                   >
                     Home
                   </Link>
                   <Link
                     to="/organizations/new"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                   >
                     New organization
                   </Link>
                   <Link
                     to="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    className="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                   >
                     <User className="mr-2 h-4 w-4" />
                     Profile
@@ -114,7 +118,7 @@ export function Header() {
                       setMobileMenuOpen(false)
                       signOut(`${globalThis.location.origin}/`)
                     }}
-                    className="justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="justify-start text-destructive-foreground hover:bg-destructive/15 hover:text-destructive-foreground"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out

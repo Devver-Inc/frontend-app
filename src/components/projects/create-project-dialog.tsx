@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
+import type { GetProjectDto } from '@/lib/api/projects'
 import {
   Dialog,
   DialogContent,
@@ -15,7 +17,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useCreateProject } from '@/lib/hooks/use-projects'
 
-export function CreateProjectDialog() {
+type CreateProjectDialogProps = Readonly<{
+  onCreated?: (project: GetProjectDto) => void
+}>
+
+export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -33,16 +39,21 @@ export function CreateProjectDialog() {
         machineConfiguration: { cpuCores: 1, ram: 2, storage: 10 },
         teamMemberIds: [],
         accessControl: {
-          requireEmailAuth: false,
+          requireEmailAuth: true,
           publicAccess: false,
-          restrictToTeamMembers: true,
+          restrictToTeamMembers: false,
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (project) => {
           setOpen(false)
           setName('')
           setDescription('')
+          toast.success('Project created successfully.')
+          onCreated?.(project)
+        },
+        onError: (err) => {
+          toast.error(err.message || 'Failed to create project.')
         },
       },
     )

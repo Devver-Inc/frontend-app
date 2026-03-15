@@ -1,10 +1,15 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import {
+  Outlet,
+  createRootRouteWithContext,
+  useRouterState,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { useLogto } from '@logto/react'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { Toaster } from 'sonner'
 import TanStackQueryDevtools from '../lib/devtools'
 
 import type { QueryClient } from '@tanstack/react-query'
@@ -22,10 +27,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: () => <div>404 - Not Found</div>,
 })
 
+const BARE_ROUTES = new Set(['/callback', '/callback/'])
+
 function RootComponent() {
   const { signIn, isAuthenticated, isLoading, getAccessToken } = useLogto()
   const { getOrganizationId } = useOrganizationContext()
   const isProd = import.meta.env.PROD
+
+  const routerState = useRouterState()
+  const isBareRoute = BARE_ROUTES.has(routerState.location.pathname)
 
   const getAccessTokenRef = useRef(getAccessToken)
   getAccessTokenRef.current = getAccessToken
@@ -59,9 +69,14 @@ function RootComponent() {
 
   return (
     <>
-      <DashboardLayout>
+      {isBareRoute ? (
         <Outlet />
-      </DashboardLayout>
+      ) : (
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
+      )}
+      <Toaster richColors position="bottom-right" />
       {isProd === false && (
         <TanStackDevtools
           config={{ position: 'bottom-left' }}

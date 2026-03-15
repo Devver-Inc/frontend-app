@@ -3,25 +3,27 @@ import { SidebarNav } from './sidebar-nav'
 import { SidebarUser } from './sidebar-user'
 import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
 
-export function Sidebar() {
+type SidebarProps = Readonly<{
+  onNavigate?: () => void
+}>
+
+export function Sidebar({ onNavigate }: SidebarProps) {
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-sidebar-border bg-sidebar">
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-5">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
-            <span className="text-sm font-bold text-white">D</span>
-          </div>
-          <span className="text-base font-bold tracking-tight text-sidebar-foreground">
-            DEVVER
+    <aside className="glass-surface-strong flex h-full w-64 flex-col border-r border-sidebar-border/80 bg-sidebar/90">
+      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border/80 px-5">
+        <Link to="/" className="flex gap-0.5" onClick={onNavigate}>
+          <img src="/logo.png" alt="Devver Logo" className="h-7" />
+          <span className="text-2xl font-bold tracking-widest text-sidebar-foreground">
+            EVVER
           </span>
         </Link>
       </div>
 
-      <div className="px-3 py-3">
+      <div className="px-3 py-4">
         <OrganizationSwitcher />
       </div>
 
-      <SidebarNav />
+      <SidebarNav onNavigate={onNavigate} />
       <SidebarUser />
     </aside>
   )

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { UserPlus } from 'lucide-react'
 import {
   Dialog,
@@ -12,6 +13,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   useCreateInvitation,
   useOrganizationRoles,
@@ -31,7 +39,8 @@ export function InviteMemberDialog() {
   const { mutate, isPending } = useCreateInvitation()
   const { data: roles = [] } = useOrganizationRoles()
 
-  const defaultRoleId = roles[2]?.id
+  const defaultRoleId =
+    roles.find((r) => r.name === 'developer')?.id ?? roles[0]?.id
 
   const selectedRoleId = roleId || defaultRoleId
   const selectedRole = roles.find((r) => r.id === selectedRoleId)
@@ -50,6 +59,10 @@ export function InviteMemberDialog() {
           setOpen(false)
           setEmail('')
           setRoleId('')
+          toast.success('Invitation sent successfully.')
+        },
+        onError: (err) => {
+          toast.error(err.message || 'Failed to send invitation.')
         },
       },
     )
@@ -89,18 +102,18 @@ export function InviteMemberDialog() {
               <Label htmlFor="invite-role">Role</Label>
               {roles.length > 0 ? (
                 <>
-                  <select
-                    id="invite-role"
-                    value={selectedRoleId}
-                    onChange={(e) => setRoleId(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    {roles.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={selectedRoleId} onValueChange={setRoleId}>
+                    <SelectTrigger id="invite-role" className="w-full">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roles.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {selectedRole && ROLE_DESCRIPTIONS[selectedRole.name] && (
                     <p className="text-xs text-muted-foreground">
                       {ROLE_DESCRIPTIONS[selectedRole.name]}

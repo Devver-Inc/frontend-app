@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
-import { Github, Linkedin, Mail, Twitter } from 'lucide-react'
+import { BriefcaseBusiness, Code2, Mail, Send } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="border-t bg-white">
+    <footer className="border-t border-border/70 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand */}
@@ -12,9 +12,9 @@ export function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
                 <span className="text-lg font-bold text-white">D</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Devver</span>
+              <span className="text-xl font-bold text-foreground">Devver</span>
             </Link>
-            <p className="mt-4 max-w-md text-sm text-gray-600">
+            <p className="mt-4 max-w-md text-sm text-muted-foreground">
               Building the future of development tools. Streamline your workflow
               and ship faster with Devver.
             </p>
@@ -23,29 +23,29 @@ export function Footer() {
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 transition-colors hover:text-gray-600"
+                className="text-muted-foreground/70 transition-colors hover:text-foreground"
               >
-                <Github className="h-5 w-5" />
+                <Code2 className="h-5 w-5" />
               </a>
               <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 transition-colors hover:text-gray-600"
+                className="text-muted-foreground/70 transition-colors hover:text-foreground"
               >
-                <Twitter className="h-5 w-5" />
+                <Send className="h-5 w-5" />
               </a>
               <a
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 transition-colors hover:text-gray-600"
+                className="text-muted-foreground/70 transition-colors hover:text-foreground"
               >
-                <Linkedin className="h-5 w-5" />
+                <BriefcaseBusiness className="h-5 w-5" />
               </a>
               <a
                 href="mailto:contact@devver.app"
-                className="text-gray-400 transition-colors hover:text-gray-600"
+                className="text-muted-foreground/70 transition-colors hover:text-foreground"
               >
                 <Mail className="h-5 w-5" />
               </a>
@@ -54,12 +54,12 @@ export function Footer() {
 
           {/* Product */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Product</h3>
+            <h3 className="text-sm font-semibold text-foreground">Product</h3>
             <ul className="mt-4 space-y-3">
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Features
                 </Link>
@@ -67,7 +67,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Pricing
                 </Link>
@@ -75,7 +75,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Documentation
                 </Link>
@@ -83,7 +83,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   API
                 </Link>
@@ -93,12 +93,12 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Company</h3>
+            <h3 className="text-sm font-semibold text-foreground">Company</h3>
             <ul className="mt-4 space-y-3">
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   About
                 </Link>
@@ -106,7 +106,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Blog
                 </Link>
@@ -114,7 +114,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Careers
                 </Link>
@@ -122,7 +122,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contact
                 </Link>
@@ -134,25 +134,25 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-12 border-t pt-8">
           <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} Devver. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <Link
                 to="/"
-                className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Privacy Policy
               </Link>
               <Link
                 to="/"
-                className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Terms of Service
               </Link>
               <Link
                 to="/"
-                className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Cookie Policy
               </Link>

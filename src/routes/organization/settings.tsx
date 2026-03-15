@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Save, Settings, Trash2, Upload, X } from 'lucide-react'
+import { AlertTriangle, Camera, Save, Settings, Trash2, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +27,7 @@ import {
   useUpdateOrganization,
 } from '@/lib/hooks/use-organization'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
+import { PageHeader } from '@/components/ui/page-header'
 
 export const Route = createFileRoute('/organization/settings')({
   component: OrganizationSettingsPage,
@@ -47,42 +49,75 @@ function OrganizationSettingsPage() {
   const [description, setDescription] = useState('')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [removeLogo, setRemoveLogo] = useState(false)
   const [confirmName, setConfirmName] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const initialized = useRef(false)
+  const blobUrlRef = useRef<string | null>(null)
+  const prevOrgIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (org && !initialized.current) {
-      setName(org.name)
-      setDescription('')
-      setLogoPreview(org.coverImageUrl)
-      initialized.current = true
+    if (!org) return
+    if (currentOrganizationId === prevOrgIdRef.current) return
+    prevOrgIdRef.current = currentOrganizationId
+    setName(org.name)
+    setDescription('')
+    setLogoFile(null)
+    setRemoveLogo(false)
+    setLogoPreview(org.coverImageUrl)
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current)
+      blobUrlRef.current = null
     }
-  }, [org])
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [org, currentOrganizationId])
+
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+    }
+  }, [])
 
   const isDirty =
-    initialized.current &&
-    (name !== (org?.name ?? '') || description !== '' || logoFile !== null)
+    org != null &&
+    (name !== org.name || description !== '' || logoFile !== null || removeLogo)
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 5 MB.')
+      return
+    }
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+    const url = URL.createObjectURL(file)
+    blobUrlRef.current = url
     setLogoFile(file)
-    setLogoPreview(URL.createObjectURL(file))
+    setLogoPreview(url)
+    setRemoveLogo(false)
   }
 
   const handleRemoveLogo = () => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current)
+      blobUrlRef.current = null
+    }
     setLogoFile(null)
     setLogoPreview(null)
+    setRemoveLogo(true)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleDiscard = () => {
     if (!org) return
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current)
+      blobUrlRef.current = null
+    }
     setName(org.name)
     setDescription('')
     setLogoFile(null)
+    setRemoveLogo(false)
     setLogoPreview(org.coverImageUrl)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -93,12 +128,22 @@ function OrganizationSettingsPage() {
         name: name.trim() || undefined,
         description: description.trim() || undefined,
         logoFile,
+        removeLogo,
       },
       {
         onSuccess: () => {
-          initialized.current = false
+          prevOrgIdRef.current = null
           setLogoFile(null)
+          setRemoveLogo(false)
           setDescription('')
+          if (blobUrlRef.current) {
+            URL.revokeObjectURL(blobUrlRef.current)
+            blobUrlRef.current = null
+          }
+          toast.success('Organization updated successfully.')
+        },
+        onError: (err) => {
+          toast.error(err.message || 'Failed to update organization.')
         },
       },
     )
@@ -111,6 +156,10 @@ function OrganizationSettingsPage() {
         if (orgId) removeOrganization(orgId)
         setCurrentOrganizationId(null)
         navigate({ to: '/organizations/new' })
+        toast.success('Organization deleted.')
+      },
+      onError: (err) => {
+        toast.error(err.message || 'Failed to delete organization.')
       },
     })
   }
@@ -145,59 +194,33 @@ function OrganizationSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-          <Settings className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Organization Settings
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your organization details and preferences
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Organization Settings"
+        description="Manage your organization details and preferences"
+        icon={Settings}
+      />
 
-      <Card className="border-border/50">
+      <Card className="glass-surface border-border/50">
         <CardHeader>
           <CardTitle className="text-base">Organization Profile</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-start gap-6">
-            <Avatar className="h-20 w-20 rounded-lg">
-              <AvatarImage src={logoPreview ?? undefined} />
-              <AvatarFallback className="rounded-lg bg-muted text-lg">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Organization Avatar</p>
-              <p className="text-xs text-muted-foreground">
-                Upload a logo or avatar for your organization. Recommended size:
-                200x200px.
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="mr-1.5 h-3.5 w-3.5" />
-                  Upload Image
-                </Button>
-                {logoPreview && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveLogo}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
+            <div className="group relative">
+              <Avatar className="h-20 w-20 rounded-lg">
+                <AvatarImage src={logoPreview ?? undefined} />
+                <AvatarFallback className="rounded-lg bg-muted text-lg">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+                aria-label="Change organization logo"
+              >
+                <Camera className="h-5 w-5 text-white" />
+              </button>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -205,6 +228,22 @@ function OrganizationSettingsPage() {
                 accept="image/png,image/jpeg,image/webp,image/svg+xml"
                 onChange={handleLogoChange}
               />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Organization Avatar</p>
+              <p className="text-xs text-muted-foreground">
+                Upload a logo or avatar for your organization. Recommended size:
+                200x200px (max 5 MB).
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={!logoPreview}
+                onClick={handleRemoveLogo}
+              >
+                Remove avatar
+              </Button>
             </div>
           </div>
 
@@ -235,7 +274,7 @@ function OrganizationSettingsPage() {
       </Card>
 
       {isDirty && (
-        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-card px-4 py-3">
+        <div className="glass-surface-strong flex items-center justify-between rounded-lg border border-border/50 px-4 py-3">
           <div>
             <p className="text-sm font-medium">You have unsaved changes</p>
             <p className="text-xs text-muted-foreground">
@@ -259,7 +298,7 @@ function OrganizationSettingsPage() {
         </div>
       )}
 
-      <Card className="border-destructive/30">
+      <Card className="glass-surface border-destructive/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base text-destructive-foreground">
             <AlertTriangle className="h-4 w-4" />
