@@ -39,6 +39,7 @@ function RootComponent() {
 
   const getAccessTokenRef = useRef(getAccessToken)
   getAccessTokenRef.current = getAccessToken
+  const unauthorizedInProgressRef = useRef(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -46,13 +47,17 @@ function RootComponent() {
     }
   }, [isLoading, isAuthenticated, signIn])
 
-  useEffect(() => {
-    if (!isAuthenticated) return
+  if (isAuthenticated) {
     setApiClientOptions({
       getAccessToken: (...args) => getAccessTokenRef.current(...args),
       getOrganizationId,
+      onUnauthorized: () => {
+        if (unauthorizedInProgressRef.current) return
+        unauthorizedInProgressRef.current = true
+        void signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
+      },
     })
-  }, [isAuthenticated, getOrganizationId])
+  }
 
   useLoadOrganizationsFromToken()
 
