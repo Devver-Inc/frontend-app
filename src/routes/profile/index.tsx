@@ -208,15 +208,18 @@ function ProfilePage() {
   const applySuccessfulSave = async (
     normalizedFirstName: string,
     normalizedLastName: string,
+    forcedPicture?: string | null,
   ) => {
     const refreshedUserInfo = (await fetchUserInfoRef.current()) as
       | Record<string, unknown>
       | undefined
     const refreshedPicture =
-      (refreshedUserInfo?.picture as string | null) ??
-      avatarPreview ??
-      profile?.picture ??
-      null
+      forcedPicture !== undefined
+        ? forcedPicture
+        : ((refreshedUserInfo?.picture as string | null) ??
+          avatarPreview ??
+          profile?.picture ??
+          null)
     const refreshedGivenName =
       (refreshedUserInfo?.given_name as string | null) ?? normalizedFirstName
     const refreshedFamilyName =
@@ -256,25 +259,46 @@ function ProfilePage() {
     try {
       const normalizedFirstName = firstName.trim()
       const normalizedLastName = lastName.trim()
-      const formData = new FormData()
-      formData.append('firstName', normalizedFirstName)
-      formData.append('lastName', normalizedLastName)
-      if (avatarFile) {
-        formData.append('profilePictureFile', avatarFile)
-      }
-      if (removeAvatar) {
-        formData.append('removeProfilePicture', 'true')
-      }
-
-      const res = await apiFetch('/users/me', {
+      const profileRes = await apiFetch('/users/me', {
         method: 'PATCH',
-        body: formData,
+        body: {
+          firstName: normalizedFirstName,
+          lastName: normalizedLastName,
+        },
       })
-      if (!res.ok) {
-        throw new Error(await getApiErrorMessage(res))
+      if (!profileRes.ok) {
+        throw new Error(await getApiErrorMessage(profileRes))
       }
 
-      await applySuccessfulSave(normalizedFirstName, normalizedLastName)
+      if (avatarFile) {
+        const pictureFormData = new FormData()
+        pictureFormData.append('profilePictureFile', avatarFile)
+        const uploadRes = await apiFetch('/users/me/picture', {
+          method: 'POST',
+          body: pictureFormData,
+        })
+        if (!uploadRes.ok) {
+          throw new Error(await getApiErrorMessage(uploadRes))
+        }
+      } else if (removeAvatar && initialAvatar) {
+        const deleteRes = await apiFetch('/users/me/picture', {
+          method: 'DELETE',
+        })
+        if (!deleteRes.ok) {
+          throw new Error(await getApiErrorMessage(deleteRes))
+        }
+      }
+
+      const forcedPicture = avatarFile
+        ? avatarPreview
+        : removeAvatar
+          ? null
+          : undefined
+      await applySuccessfulSave(
+        normalizedFirstName,
+        normalizedLastName,
+        forcedPicture,
+      )
       toast.success('Profile updated successfully.')
     } catch (err) {
       toast.error(

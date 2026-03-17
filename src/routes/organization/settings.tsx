@@ -23,8 +23,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import {
   useDeleteOrganization,
+  useDeleteOrganizationLogo,
   useOrganizationInfo,
   useUpdateOrganization,
+  useUploadOrganizationLogo,
 } from '@/lib/hooks/use-organization'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 import { PageHeader } from '@/components/ui/page-header'
@@ -43,6 +45,8 @@ function OrganizationSettingsPage() {
 
   const { data: org, isLoading } = useOrganizationInfo()
   const updateMutation = useUpdateOrganization()
+  const uploadLogoMutation = useUploadOrganizationLogo()
+  const deleteLogoMutation = useDeleteOrganizationLogo()
   const deleteMutation = useDeleteOrganization()
 
   const [name, setName] = useState('')
@@ -123,30 +127,36 @@ function OrganizationSettingsPage() {
   }
 
   const handleSave = () => {
-    updateMutation.mutate(
-      {
-        name: name.trim() || undefined,
-        description: description.trim() || undefined,
-        logoFile,
-        removeLogo,
-      },
-      {
-        onSuccess: () => {
-          prevOrgIdRef.current = null
-          setLogoFile(null)
-          setRemoveLogo(false)
-          setDescription('')
-          if (blobUrlRef.current) {
-            URL.revokeObjectURL(blobUrlRef.current)
-            blobUrlRef.current = null
-          }
-          toast.success('Organization updated successfully.')
-        },
-        onError: (err) => {
-          toast.error(err.message || 'Failed to update organization.')
-        },
-      },
-    )
+    const run = async () => {
+      try {
+        await updateMutation.mutateAsync({
+          name: name.trim() || undefined,
+          description: description.trim() || undefined,
+        })
+
+        if (logoFile) {
+          await uploadLogoMutation.mutateAsync(logoFile)
+        } else if (removeLogo && org?.coverImageUrl) {
+          await deleteLogoMutation.mutateAsync()
+        }
+
+        prevOrgIdRef.current = null
+        setLogoFile(null)
+        setRemoveLogo(false)
+        setDescription('')
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current)
+          blobUrlRef.current = null
+        }
+        toast.success('Organization updated successfully.')
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : 'Failed to update organization.',
+        )
+      }
+    }
+
+    void run()
   }
 
   const handleDelete = () => {
@@ -289,10 +299,19 @@ function OrganizationSettingsPage() {
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={updateMutation.isPending || !name.trim()}
+              disabled={
+                updateMutation.isPending ||
+                uploadLogoMutation.isPending ||
+                deleteLogoMutation.isPending ||
+                !name.trim()
+              }
             >
               <Save className="mr-1.5 h-3.5 w-3.5" />
-              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isPending ||
+              uploadLogoMutation.isPending ||
+              deleteLogoMutation.isPending
+                ? 'Saving...'
+                : 'Save Changes'}
             </Button>
           </div>
         </div>

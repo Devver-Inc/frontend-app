@@ -3,9 +3,11 @@ import type { UpdateOrganizationInput } from '@/lib/api/organizations'
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 import {
   deleteOrganization,
+  deleteOrganizationLogo,
   getOrganization,
   getOrganizationDetails,
   updateOrganization,
+  uploadOrganizationLogo,
 } from '@/lib/api/organizations'
 
 export function useOrganizationInfo() {
@@ -34,6 +36,36 @@ export function useUpdateOrganization() {
 
   return useMutation({
     mutationFn: (input: UpdateOrganizationInput) => updateOrganization(input),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['organization', currentOrganizationId], data)
+      queryClient.invalidateQueries({
+        queryKey: ['organization-details', currentOrganizationId],
+      })
+    },
+  })
+}
+
+export function useUploadOrganizationLogo() {
+  const queryClient = useQueryClient()
+  const { currentOrganizationId } = useOrganizationContext()
+
+  return useMutation({
+    mutationFn: (logoFile: File) => uploadOrganizationLogo(logoFile),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['organization', currentOrganizationId], data)
+      queryClient.invalidateQueries({
+        queryKey: ['organization-details', currentOrganizationId],
+      })
+    },
+  })
+}
+
+export function useDeleteOrganizationLogo() {
+  const queryClient = useQueryClient()
+  const { currentOrganizationId } = useOrganizationContext()
+
+  return useMutation({
+    mutationFn: () => deleteOrganizationLogo(),
     onSuccess: (data) => {
       queryClient.setQueryData(['organization', currentOrganizationId], data)
       queryClient.invalidateQueries({

@@ -25,8 +25,6 @@ export type CreateOrganizationInput = {
 export type UpdateOrganizationInput = {
   name?: string
   description?: string
-  logoFile?: File | null
-  removeLogo?: boolean
 }
 
 export async function createOrganization(
@@ -58,16 +56,27 @@ export async function getOrganizationDetails(): Promise<OrganizationDetails> {
 export async function updateOrganization(
   input: UpdateOrganizationInput,
 ): Promise<OrganizationLight> {
-  const formData = new FormData()
-  if (input.name !== undefined) formData.append('name', input.name)
-  if (input.description !== undefined)
-    formData.append('description', input.description)
-  if (input.logoFile) formData.append('logoFile', input.logoFile)
-  if (input.removeLogo) formData.append('removeLogo', 'true')
-
   return apiJson<OrganizationLight>('/organizations', {
     method: 'PATCH',
+    body: input,
+  })
+}
+
+export async function uploadOrganizationLogo(
+  logoFile: File,
+): Promise<OrganizationLight> {
+  const formData = new FormData()
+  formData.append('logoFile', logoFile)
+
+  return apiJson<OrganizationLight>('/organizations/logo', {
+    method: 'POST',
     body: formData,
+  })
+}
+
+export async function deleteOrganizationLogo(): Promise<OrganizationLight> {
+  return apiJson<OrganizationLight>('/organizations/logo', {
+    method: 'DELETE',
   })
 }
 

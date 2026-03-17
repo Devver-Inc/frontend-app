@@ -66,7 +66,7 @@ type InternalRequestInit = Omit<RequestInit, 'body'> & {
   _retriedAfter401?: boolean
 }
 type ApiErrorPayload = {
-  message?: string | string[]
+  message?: string | Array<string>
   error?: string
 }
 
@@ -110,7 +110,10 @@ async function internalFetch(
   init: InternalRequestInit = {},
 ): Promise<Response> {
   const headers = await buildAuthHeaders(includeOrganization)
-  const response = await fetch(`${API_BASE}${path}`, buildFetchInit(headers, init))
+  const response = await fetch(
+    `${API_BASE}${path}`,
+    buildFetchInit(headers, init),
+  )
 
   if (response.status === 401 && !init._retriedAfter401) {
     return internalFetch(path, includeOrganization, {
