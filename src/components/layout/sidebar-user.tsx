@@ -12,6 +12,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+
+interface LogtoClaims {
+  sub?: string
+  username?: string
+  name?: string
+  email?: string
+  picture?: string
+}
 
 export function SidebarUser() {
   const { signOut, getIdTokenClaims } = useLogto()
@@ -20,22 +29,37 @@ export function SidebarUser() {
     email: string | null
     picture: string | null
   }>({ name: null, email: null, picture: null })
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    getIdTokenClaims().then((claims) => {
-      if (!claims) return
-      setUser({
-        name:
-          ((claims as Record<string, unknown>).username as string | null) ??
-          claims.name ??
-          null,
-        email:
-          ((claims as Record<string, unknown>).email as string | null) ?? null,
-        picture:
-          ((claims as Record<string, unknown>).picture as string | null) ??
-          null,
+    let cancelled = false
+
+    setIsLoading(true)
+
+    getIdTokenClaims()
+      .then((claims) => {
+        if (!claims) return
+
+        const typedClaims = claims as unknown as LogtoClaims
+        if (cancelled) return
+
+        setUser({
+          name: typedClaims.username ?? typedClaims.name ?? null,
+          email: typedClaims.email ?? null,
+          picture: typedClaims.picture ?? null,
+        })
       })
-    })
+      .catch(() => {
+        // If claims can't be fetched, keep the user empty and stop the loading UI.
+      })
+      .finally(() => {
+        if (cancelled) return
+        setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [getIdTokenClaims])
 
   const initials = user.name
@@ -55,23 +79,36 @@ export function SidebarUser() {
             type="button"
             variant="ghost"
             className="h-auto w-full items-center gap-3 px-2 py-1.5 text-left text-sm hover:bg-sidebar-accent"
+            disabled={isLoading}
           >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user.picture ?? undefined} />
-              <AvatarFallback className="bg-sidebar-accent text-xs">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate font-medium text-sidebar-foreground">
-                {user.name ?? 'User'}
-              </p>
-              {user.email && (
-                <p className="truncate text-xs text-sidebar-foreground/60">
-                  {user.email}
-                </p>
-              )}
-            </div>
+            {isLoading ? (
+              <div className="flex w-full items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 overflow-hidden space-y-2">
+                  <Skeleton className="h-4 w-28 rounded-md" />
+                  <Skeleton className="h-3 w-36 rounded-md" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.picture ?? undefined} />
+                  <AvatarFallback className="bg-sidebar-accent text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate font-medium text-sidebar-foreground">
+                    {user.name ?? 'User'}
+                  </p>
+                  {user.email && (
+                    <p className="truncate text-xs text-sidebar-foreground/60">
+                      {user.email}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
             <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-foreground/40" />
           </Button>
         </DropdownMenuTrigger>

@@ -6,12 +6,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { useOrganizationContext } from '@/lib/organization/organization-context'
 
 export function OrganizationSwitcher() {
-  const { currentOrganizationId, setCurrentOrganizationId, organizations } =
-    useOrganizationContext()
+  const {
+    currentOrganizationId,
+    setCurrentOrganizationId,
+    organizations,
+    isLoadingOrganizations,
+  } = useOrganizationContext()
 
   const matchedOrg = organizations.find(
     (org) => org.id === currentOrganizationId,
@@ -21,8 +26,10 @@ export function OrganizationSwitcher() {
 
   useEffect(() => {
     if (organizations.length === 0) return
-    if (!currentOrganizationId || !matchedOrg) {
-      setCurrentOrganizationId(organizations[0].id)
+
+    const nextId = matchedOrg?.id ?? organizations[0].id
+    if (currentOrganizationId !== nextId) {
+      setCurrentOrganizationId(nextId)
     }
   }, [
     organizations,
@@ -30,6 +37,10 @@ export function OrganizationSwitcher() {
     matchedOrg,
     setCurrentOrganizationId,
   ])
+
+  if (isLoadingOrganizations && organizations.length === 0) {
+    return <Skeleton className="h-10 w-full rounded-xl" />
+  }
 
   const handleChange = (value: string) => {
     setCurrentOrganizationId(value)

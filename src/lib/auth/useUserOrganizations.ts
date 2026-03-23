@@ -23,7 +23,8 @@ function decodeJwtPayload(token: string): unknown {
  */
 export function useLoadOrganizationsFromToken() {
   const { isAuthenticated, getAccessToken } = useLogto()
-  const { setOrganizations } = useOrganizationContext()
+  const { setOrganizations, setIsLoadingOrganizations } =
+    useOrganizationContext()
 
   const getAccessTokenRef = useRef(getAccessToken)
   getAccessTokenRef.current = getAccessToken
@@ -33,9 +34,12 @@ export function useLoadOrganizationsFromToken() {
   useEffect(() => {
     if (!isAuthenticated) {
       hasLoaded.current = false
+      setIsLoadingOrganizations(false)
       return
     }
     if (hasLoaded.current) return
+
+    setIsLoadingOrganizations(true)
 
     const abortController = new AbortController()
 
@@ -56,15 +60,18 @@ export function useLoadOrganizationsFromToken() {
         if (!signal.aborted) {
           hasLoaded.current = true
           setOrganizations(orgs)
+          setIsLoadingOrganizations(false)
         }
       } catch {
         // token fetch failed, leave orgs as-is
+        if (!signal.aborted) setIsLoadingOrganizations(false)
       }
     }
     void load(abortController.signal)
 
     return () => {
       abortController.abort()
+      setIsLoadingOrganizations(false)
     }
-  }, [isAuthenticated, setOrganizations])
+  }, [isAuthenticated, setOrganizations, setIsLoadingOrganizations])
 }

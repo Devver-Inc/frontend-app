@@ -7,6 +7,11 @@ export type MachineConfiguration = {
   storage: number
 }
 
+export type MachineConfigurationInput = {
+  cpuCores: number
+  ram: number
+}
+
 export type AccessControl = {
   requireEmailAuth: boolean
   publicAccess: boolean
@@ -42,7 +47,7 @@ export type PaginatedResponse<T> = {
 export type CreateProjectInput = {
   name: string
   description?: string
-  machineConfiguration: MachineConfiguration
+  machineConfiguration: MachineConfigurationInput
   teamMemberIds: Array<string>
   accessControl: AccessControl
 }

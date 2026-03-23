@@ -19,15 +19,9 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   AlertDialog,
@@ -55,14 +49,11 @@ import {
   useProjectComments,
 } from '@/lib/hooks/use-comments'
 import {
-  useCreateProjectDeployment,
   useCreateProjectRepo,
-  useDeleteProjectDeployment,
   useDeleteProjectRepo,
   useProjectDeploymentLogs,
   useProjectDeployments,
   useProjectRepos,
-  useRestoreProjectDeployAgentState,
 } from '@/lib/hooks/use-deploy-agent'
 import {
   useAddProjectMembers,
@@ -93,16 +84,12 @@ function ProjectDetailsPage() {
   const createRepoMutation = useCreateProjectRepo(projectId)
   const deleteRepoMutation = useDeleteProjectRepo(projectId)
   const { data: deployments = [] } = useProjectDeployments(projectId)
-  const createDeploymentMutation = useCreateProjectDeployment(projectId)
-  const deleteDeploymentMutation = useDeleteProjectDeployment(projectId)
   const logsMutation = useProjectDeploymentLogs(projectId)
-  const restoreStateMutation = useRestoreProjectDeployAgentState(projectId)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [cpuCores, setCpuCores] = useState(2)
-  const [ram, setRam] = useState(4)
-  const [storage, setStorage] = useState(20)
+  const [cpuCores, setCpuCores] = useState(1)
+  const [ram, setRam] = useState(1)
   const [requireEmailAuth, setRequireEmailAuth] = useState(true)
   const [publicAccess, setPublicAccess] = useState(false)
   const [restrictToTeamMembers, setRestrictToTeamMembers] = useState(false)
@@ -110,15 +97,6 @@ function ProjectDetailsPage() {
   const [selectedMemberIds, setSelectedMemberIds] = useState<Array<string>>([])
   const [comment, setComment] = useState('')
   const [repoName, setRepoName] = useState('')
-  const [deployRepo, setDeployRepo] = useState('')
-  const [deployBranch, setDeployBranch] = useState('main')
-  const [deployCommit, setDeployCommit] = useState('')
-  const [serviceName, setServiceName] = useState('app')
-  const [serviceRoot, setServiceRoot] = useState('')
-  const [serviceInstall, setServiceInstall] = useState('')
-  const [serviceBuild, setServiceBuild] = useState('npm run build')
-  const [serviceStart, setServiceStart] = useState('npm run start')
-  const [serviceDepends, setServiceDepends] = useState('')
   const [confirmProjectName, setConfirmProjectName] = useState('')
   const [selectedDeploymentIdForLogs, setSelectedDeploymentIdForLogs] =
     useState<string | null>(null)
@@ -127,9 +105,10 @@ function ProjectDetailsPage() {
     if (!project) return
     setName(project.name)
     setDescription(project.description ?? '')
-    setCpuCores(project.machineConfiguration.cpuCores)
-    setRam(project.machineConfiguration.ram)
-    setStorage(project.machineConfiguration.storage)
+    setCpuCores(
+      Math.max(0.5, Math.min(2, project.machineConfiguration.cpuCores)),
+    )
+    setRam(Math.max(0.5, Math.min(2, project.machineConfiguration.ram)))
     setRequireEmailAuth(project.accessControl.requireEmailAuth)
     setPublicAccess(project.accessControl.publicAccess)
     setRestrictToTeamMembers(project.accessControl.restrictToTeamMembers)
@@ -141,13 +120,19 @@ function ProjectDetailsPage() {
     return all.filter((m) => !existingIds.has(m.id))
   }, [membersData?.data, project?.teamMembers])
 
+  const normalizedProjectCpu = project
+    ? Math.max(0.5, Math.min(2, project.machineConfiguration.cpuCores))
+    : 1
+  const normalizedProjectRam = project
+    ? Math.max(0.5, Math.min(2, project.machineConfiguration.ram))
+    : 1
+
   const isDirty =
     project != null &&
     (name.trim() !== project.name ||
       description.trim() !== (project.description ?? '') ||
-      cpuCores !== project.machineConfiguration.cpuCores ||
-      ram !== project.machineConfiguration.ram ||
-      storage !== project.machineConfiguration.storage ||
+      cpuCores !== normalizedProjectCpu ||
+      ram !== normalizedProjectRam ||
       requireEmailAuth !== project.accessControl.requireEmailAuth ||
       publicAccess !== project.accessControl.publicAccess ||
       restrictToTeamMembers !== project.accessControl.restrictToTeamMembers)
@@ -165,7 +150,7 @@ function ProjectDetailsPage() {
       {
         name: name.trim(),
         description: description.trim() || undefined,
-        machineConfiguration: { cpuCores, ram, storage },
+        machineConfiguration: { cpuCores, ram },
         accessControl: {
           requireEmailAuth,
           publicAccess,
@@ -218,17 +203,7 @@ function ProjectDetailsPage() {
     const content = comment.trim()
     if (!content) return
     createCommentMutation.mutate(
-      {
-        content,
-        position: {
-          pageUrl: globalThis.location.href,
-          anchor: 'project-page',
-          normX: 0,
-          normY: 0,
-          anchorOffsetX: 0,
-          anchorOffsetY: 0,
-        },
-      },
+      { content },
       {
         onSuccess: () => {
           setComment('')
@@ -240,52 +215,17 @@ function ProjectDetailsPage() {
   }
 
   const handleCreateRepo = () => {
-    const name = repoName.trim()
-    if (!name) return
+    const nextRepoName = repoName.trim()
+    if (!nextRepoName) return
     createRepoMutation.mutate(
-      { name },
+      { name: nextRepoName },
       {
-        onSuccess: (repo) => {
+        onSuccess: () => {
           setRepoName('')
-          if (!deployRepo) setDeployRepo(repo.name)
           toast.success('Repository created.')
         },
         onError: (err) =>
           toast.error(err.message || 'Failed to create repository.'),
-      },
-    )
-  }
-
-  const handleCreateDeployment = () => {
-    const repo = deployRepo.trim()
-    const branch = deployBranch.trim()
-    const svc = serviceName.trim()
-    const build = serviceBuild.trim()
-    const start = serviceStart.trim()
-    if (!repo || !branch || !svc || !build || !start) return
-
-    createDeploymentMutation.mutate(
-      {
-        repo,
-        branch,
-        commit: deployCommit.trim() || undefined,
-        services: {
-          [svc]: {
-            root: serviceRoot.trim() || undefined,
-            install: serviceInstall.trim() || undefined,
-            build,
-            start,
-            depends: serviceDepends
-              .split(',')
-              .map((d) => d.trim())
-              .filter(Boolean),
-          },
-        },
-      },
-      {
-        onSuccess: () => toast.success('Deployment created.'),
-        onError: (err) =>
-          toast.error(err.message || 'Failed to create deployment.'),
       },
     )
   }
@@ -346,44 +286,43 @@ function ProjectDetailsPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="cpu-cores">CPU Cores</Label>
-              <Input
+              <div className="text-xs text-muted-foreground">
+                {cpuCores.toFixed(1)}
+              </div>
+              <Slider
                 id="cpu-cores"
-                type="number"
-                min={1}
-                max={16}
-                value={cpuCores}
-                onChange={(e) =>
-                  setCpuCores(Math.max(1, Math.min(16, Number(e.target.value))))
-                }
+                min={0.5}
+                max={2}
+                step={0.1}
+                value={[cpuCores]}
+                onValueChange={(values) => setCpuCores(values[0] ?? 1)}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ram">RAM (GB)</Label>
-              <Input
+              <div className="text-xs text-muted-foreground">
+                {ram.toFixed(1)}
+              </div>
+              <Slider
                 id="ram"
-                type="number"
-                min={1}
-                max={64}
-                value={ram}
-                onChange={(e) =>
-                  setRam(Math.max(1, Math.min(64, Number(e.target.value))))
-                }
+                min={0.5}
+                max={2}
+                step={0.1}
+                value={[ram]}
+                onValueChange={(values) => setRam(values[0] ?? 1)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="storage">Storage (GB)</Label>
+              <Label htmlFor="storage-future">Storage (GB)</Label>
               <Input
-                id="storage"
-                type="number"
-                min={10}
-                max={500}
-                value={storage}
-                onChange={(e) =>
-                  setStorage(
-                    Math.max(10, Math.min(500, Number(e.target.value))),
-                  )
-                }
+                id="storage-future"
+                value="Coming soon"
+                disabled
+                readOnly
               />
+              <p className="text-xs text-muted-foreground">
+                Storage configuration will be available in a future release.
+              </p>
             </div>
           </div>
 
@@ -461,11 +400,10 @@ function ProjectDetailsPage() {
                         key={member.id}
                         type="button"
                         onClick={() => toggleMember(member.id)}
-                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
-                          selected
+                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${selected
                             ? 'border-primary/50 bg-primary/10'
                             : 'border-border/60 hover:bg-accent/40'
-                        }`}
+                          }`}
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={member.avatarUrl ?? undefined} />
@@ -592,9 +530,11 @@ function ProjectDetailsPage() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">{item.userId}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {item.position.pageUrl}
-                    </p>
+                    {item.position?.pageUrl ? (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {item.position.pageUrl}
+                      </p>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {item.content}
@@ -612,25 +552,6 @@ function ProjectDetailsPage() {
             <GitBranch className="h-4 w-4" />
             Repositories
           </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              restoreStateMutation.mutate(undefined, {
-                onSuccess: (res) =>
-                  toast.success(
-                    `Restored ${res.restoredRepos} repos and ${res.restoredDeployments} deployments.`,
-                  ),
-                onError: (err) =>
-                  toast.error(err.message || 'Failed to restore agent state.'),
-              })
-            }
-            disabled={restoreStateMutation.isPending}
-          >
-            {restoreStateMutation.isPending
-              ? 'Restoring...'
-              : 'Restore Agent State'}
-          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -647,7 +568,7 @@ function ProjectDetailsPage() {
             </Button>
           </div>
 
-          {(repos ?? []).length === 0 ? (
+          {repos.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No repositories configured.
             </p>
@@ -696,106 +617,6 @@ function ProjectDetailsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Repository</Label>
-              <Select value={deployRepo} onValueChange={setDeployRepo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select repository" />
-                </SelectTrigger>
-                <SelectContent>
-                  {repos.map((repo) => (
-                    <SelectItem key={repo.id} value={repo.name}>
-                      {repo.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Branch</Label>
-              <Input
-                value={deployBranch}
-                onChange={(e) => setDeployBranch(e.target.value)}
-                placeholder="main"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Commit (optional)</Label>
-              <Input
-                value={deployCommit}
-                onChange={(e) => setDeployCommit(e.target.value)}
-                placeholder="a1b2c3d"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Service name</Label>
-              <Input
-                value={serviceName}
-                onChange={(e) => setServiceName(e.target.value)}
-                placeholder="app"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Root (optional)</Label>
-              <Input
-                value={serviceRoot}
-                onChange={(e) => setServiceRoot(e.target.value)}
-                placeholder="./apps/api"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Install (optional)</Label>
-              <Input
-                value={serviceInstall}
-                onChange={(e) => setServiceInstall(e.target.value)}
-                placeholder="npm install"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Build command</Label>
-              <Input
-                value={serviceBuild}
-                onChange={(e) => setServiceBuild(e.target.value)}
-                placeholder="npm run build"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Start command</Label>
-              <Input
-                value={serviceStart}
-                onChange={(e) => setServiceStart(e.target.value)}
-                placeholder="npm run start"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Depends (comma-separated, optional)</Label>
-              <Input
-                value={serviceDepends}
-                onChange={(e) => setServiceDepends(e.target.value)}
-                placeholder="database, redis"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button
-              onClick={handleCreateDeployment}
-              disabled={
-                createDeploymentMutation.isPending ||
-                !deployRepo ||
-                !deployBranch.trim() ||
-                !serviceName.trim() ||
-                !serviceBuild.trim() ||
-                !serviceStart.trim()
-              }
-            >
-              {createDeploymentMutation.isPending
-                ? 'Deploying...'
-                : 'Create Deployment'}
-            </Button>
-          </div>
-
           <div className="space-y-2">
             {deployments.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -835,34 +656,10 @@ function ProjectDetailsPage() {
                       >
                         Logs
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() =>
-                          deleteDeploymentMutation.mutate(
-                            {
-                              repo: deployment.repo,
-                              branch: deployment.branch,
-                            },
-                            {
-                              onSuccess: () =>
-                                toast.success('Deployment removed.'),
-                              onError: (err) =>
-                                toast.error(
-                                  err.message || 'Failed to remove deployment.',
-                                ),
-                            },
-                          )
-                        }
-                        disabled={deleteDeploymentMutation.isPending}
-                        className="text-muted-foreground hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                   {selectedDeploymentIdForLogs === deployment.id &&
-                  logsMutation.data ? (
+                    logsMutation.data ? (
                     <div className="mt-3 space-y-1 rounded-md border border-border/50 bg-background/40 p-2">
                       {logsMutation.data.logs.length === 0 ? (
                         <p className="text-xs text-muted-foreground">

@@ -38,22 +38,8 @@ export type DeploymentLogs = {
   logs: Array<DeploymentLogEntry>
 }
 
-export type RestoreDeployAgentStateResponse = {
-  restoredRepos: number
-  restoredDeployments: number
-}
-
 export type CreateProjectRepoInput = {
   name: string
-}
-
-export type CreateDeploymentInput = {
-  repo: string
-  branch: string
-  commit?: string
-  services: Record<string, DeploymentServiceConfig>
-  links?: Record<string, Record<string, string>>
-  env?: Record<string, Record<string, string>>
 }
 
 export async function getProjectRepos(
@@ -92,47 +78,11 @@ export async function getProjectDeployments(
   return apiJson<Array<ProjectDeployment>>(`/projects/${projectId}/deployments`)
 }
 
-export async function createProjectDeployment(
-  projectId: string,
-  input: CreateDeploymentInput,
-): Promise<ProjectDeployment> {
-  return apiJson<ProjectDeployment>(`/projects/${projectId}/deployments`, {
-    method: 'POST',
-    body: input,
-  })
-}
-
-export async function deleteProjectDeployment(
-  projectId: string,
-  repo: string,
-  branch: string,
-): Promise<void> {
-  const res = await apiFetch(
-    `/projects/${projectId}/deployments/${encodeURIComponent(repo)}/${encodeURIComponent(branch)}`,
-    { method: 'DELETE' },
-  )
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`API ${res.status}: ${text || res.statusText}`)
-  }
-}
-
 export async function getProjectDeploymentLogs(
   projectId: string,
   deploymentId: string,
 ): Promise<DeploymentLogs> {
   return apiJson<DeploymentLogs>(
     `/projects/${projectId}/deployments/${deploymentId}/logs`,
-  )
-}
-
-export async function restoreProjectDeployAgentState(
-  projectId: string,
-): Promise<RestoreDeployAgentStateResponse> {
-  return apiJson<RestoreDeployAgentStateResponse>(
-    `/projects/${projectId}/deploy-agent/restore`,
-    {
-      method: 'POST',
-    },
   )
 }

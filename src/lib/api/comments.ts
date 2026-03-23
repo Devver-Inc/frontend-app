@@ -13,7 +13,7 @@ export type ProjectComment = {
   id: string
   userId: string
   content: string
-  position: CommentPosition
+  position: CommentPosition | null
 }
 
 export type PaginatedComments = {
@@ -28,7 +28,7 @@ export type PaginatedComments = {
 
 export type CreateCommentInput = {
   content: string
-  position: CommentPosition
+  position?: CommentPosition
 }
 
 export async function getProjectComments(

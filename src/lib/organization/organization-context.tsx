@@ -20,6 +20,8 @@ type OrganizationContextValue = {
   setCurrentOrganizationId: (id: string | null) => void
   getOrganizationId: () => string | null
   organizations: Array<OrganizationLight>
+  isLoadingOrganizations: boolean
+  setIsLoadingOrganizations: (loading: boolean) => void
   setOrganizations: (orgs: Array<OrganizationLight>) => void
   addOrganization: (org: OrganizationLight) => void
   removeOrganization: (id: string) => void
@@ -41,6 +43,8 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   const [organizations, setOrganizations] = useState<Array<OrganizationLight>>(
     [],
   )
+
+  const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false)
 
   const ref = useRef<string | null>(currentOrganizationId)
   ref.current = currentOrganizationId
@@ -81,6 +85,8 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       setCurrentOrganizationId: persistAndSetCurrentOrganizationId,
       getOrganizationId,
       organizations,
+      isLoadingOrganizations,
+      setIsLoadingOrganizations,
       setOrganizations,
       addOrganization,
       removeOrganization,
@@ -90,6 +96,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       persistAndSetCurrentOrganizationId,
       getOrganizationId,
       organizations,
+      isLoadingOrganizations,
       addOrganization,
       removeOrganization,
     ],

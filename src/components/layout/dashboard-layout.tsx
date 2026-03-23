@@ -12,12 +12,10 @@ export function DashboardLayout({
   return (
     <div className="min-h-screen bg-background text-foreground">
       {mobileOpen && (
-        <Button
-          type="button"
-          variant="ghost"
-          className="fixed inset-0 z-40 h-auto rounded-none bg-black/50 p-0 hover:bg-black/50 lg:hidden"
+        <div
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
-          aria-label="Close sidebar"
+          aria-hidden="true"
         />
       )}
 
