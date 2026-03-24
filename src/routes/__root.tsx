@@ -1,15 +1,22 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import {
+  Outlet,
+  createRootRouteWithContext,
+  useRouterState,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { useLogto } from '@logto/react'
 import { LoaderCircle } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { Toaster } from 'sonner'
 import TanStackQueryDevtools from '../lib/devtools'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { Footer } from '@/components/_utils/footer'
-import { Header } from '@/components/_utils/header'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { setApiClientOptions } from '@/lib/api/client'
+import { useOrganizationContext } from '@/lib/organization/organization-context'
+import { useLoadOrganizationsFromToken } from '@/lib/auth/useUserOrganizations'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -20,9 +27,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: () => <div>404 - Not Found</div>,
 })
 
+const BARE_ROUTES = new Set(['/callback', '/callback/'])
+
 function RootComponent() {
-  const { signIn, isAuthenticated, isLoading } = useLogto()
+  const { signIn, isAuthenticated, isLoading, getAccessToken } = useLogto()
+  const { getOrganizationId } = useOrganizationContext()
   const isProd = import.meta.env.PROD
+
+  const routerState = useRouterState()
+  const isBareRoute = BARE_ROUTES.has(routerState.location.pathname)
+
+  const getAccessTokenRef = useRef(getAccessToken)
+  getAccessTokenRef.current = getAccessToken
+  const unauthorizedInProgressRef = useRef(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -30,26 +47,44 @@ function RootComponent() {
     }
   }, [isLoading, isAuthenticated, signIn])
 
-  if (isLoading) {
+  if (isAuthenticated) {
+    setApiClientOptions({
+      getAccessToken: (...args) => getAccessTokenRef.current(...args),
+      getOrganizationId,
+      onUnauthorized: () => {
+        if (unauthorizedInProgressRef.current) return
+        unauthorizedInProgressRef.current = true
+        void signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
+      },
+    })
+  }
+
+  useLoadOrganizationsFromToken()
+
+  if (isLoading && !isAuthenticated) {
     return (
-      <div className="size-full h-screen grid place-items-center">
-        <LoaderCircle size={36} className="animate-spin" />
+      <div className="grid h-screen place-items-center bg-background">
+        <LoaderCircle
+          size={36}
+          className="animate-spin text-muted-foreground"
+        />
       </div>
     )
   }
 
   return (
     <>
-      <Header />
-      <main className="min-h-screen">
+      {isBareRoute ? (
         <Outlet />
-      </main>
-      <Footer />
+      ) : (
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
+      )}
+      <Toaster richColors position="bottom-right" />
       {isProd === false && (
         <TanStackDevtools
-          config={{
-            position: 'bottom-left',
-          }}
+          config={{ position: 'bottom-left' }}
           plugins={[
             {
               name: 'Tanstack Router',
