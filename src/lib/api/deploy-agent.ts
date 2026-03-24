@@ -38,6 +38,15 @@ export type DeploymentLogs = {
   logs: Array<DeploymentLogEntry>
 }
 
+export type ArgoDeploymentStatusEvent = {
+  appName: string
+  healthStatus: string
+  syncStatus: string
+  operationPhase?: string
+  operationMessage?: string
+  timestamp: string
+}
+
 export type CreateProjectRepoInput = {
   name: string
 }

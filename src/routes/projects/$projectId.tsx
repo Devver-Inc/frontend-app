@@ -3,13 +3,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertTriangle,
+  CircleAlert,
   GitBranch,
+  LoaderCircle,
   MessageSquare,
   Save,
   Settings2,
+  ShieldCheck,
   TerminalSquare,
   Trash2,
   UserPlus,
+  Wifi,
+  WifiOff,
   X,
 } from 'lucide-react'
 
@@ -49,6 +54,7 @@ import {
   useProjectComments,
 } from '@/lib/hooks/use-comments'
 import {
+  useArgoStatusStream,
   useCreateProjectRepo,
   useDeleteProjectRepo,
   useProjectDeploymentLogs,
@@ -84,6 +90,11 @@ function ProjectDetailsPage() {
   const deleteRepoMutation = useDeleteProjectRepo(projectId)
   const { data: deployments = [] } = useProjectDeployments(projectId)
   const logsMutation = useProjectDeploymentLogs(projectId)
+  const {
+    status: argoStatus,
+    isConnected: isArgoConnected,
+    lastEventAt: argoLastEventAt,
+  } = useArgoStatusStream(projectId)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -125,6 +136,72 @@ function ProjectDetailsPage() {
   const normalizedProjectRam = project
     ? Math.max(0.5, Math.min(2, project.machineConfiguration.ram))
     : 1
+
+  const getArgoState = () => {
+    if (!argoStatus) {
+      return {
+        label: 'No status yet',
+        description: 'Waiting for ArgoCD status stream...',
+        variant: 'secondary' as const,
+        tone: 'neutral' as const,
+      }
+    }
+
+    if (
+      argoStatus.healthStatus === 'Missing' &&
+      argoStatus.syncStatus === 'OutOfSync'
+    ) {
+      return {
+        label: 'Deployment issue',
+        description: 'Missing + OutOfSync',
+        variant: 'destructive' as const,
+        tone: 'critical' as const,
+      }
+    }
+
+    if (
+      argoStatus.healthStatus === 'Progressing' &&
+      argoStatus.syncStatus === 'Synced'
+    ) {
+      return {
+        label: 'Stabilizing',
+        description: 'Progressing + Synced',
+        variant: 'secondary' as const,
+        tone: 'progress' as const,
+      }
+    }
+
+    if (
+      argoStatus.healthStatus === 'Healthy' &&
+      argoStatus.syncStatus === 'Synced'
+    ) {
+      return {
+        label: 'Operational',
+        description: 'Healthy + Synced',
+        variant: 'default' as const,
+        tone: 'healthy' as const,
+      }
+    }
+
+    return {
+      label: 'Unknown state',
+      description: `${argoStatus.healthStatus} + ${argoStatus.syncStatus}`,
+      variant: 'secondary' as const,
+      tone: 'neutral' as const,
+    }
+  }
+
+  const argoState = getArgoState()
+  const argoUpdatedAt = argoLastEventAt ?? argoStatus?.timestamp ?? null
+  const argoUpdatedLabel = argoUpdatedAt
+    ? new Date(argoUpdatedAt).toLocaleString()
+    : 'N/A'
+  const argoToneClasses: Record<typeof argoState.tone, string> = {
+    critical: 'border-red-500/40 bg-red-500/10',
+    progress: 'border-amber-500/40 bg-amber-500/10',
+    healthy: 'border-emerald-500/40 bg-emerald-500/10',
+    neutral: 'border-border/60 bg-background/40',
+  }
 
   const isDirty =
     project != null &&
@@ -255,6 +332,61 @@ function ProjectDetailsPage() {
         description="Configure resources, access and team members."
         icon={Settings2}
       />
+
+      <div
+        className={`rounded-xl border px-4 py-3 ${argoToneClasses[argoState.tone]}`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {argoState.tone === 'critical' ? (
+              <CircleAlert className="h-4 w-4 text-red-500" />
+            ) : argoState.tone === 'progress' ? (
+              <LoaderCircle className="h-4 w-4 animate-spin text-amber-500" />
+            ) : argoState.tone === 'healthy' ? (
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+            ) : (
+              <TerminalSquare className="h-4 w-4 text-muted-foreground" />
+            )}
+            <p className="text-sm font-semibold">{argoState.label}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={isArgoConnected ? 'default' : 'secondary'}>
+              {isArgoConnected ? (
+                <span className="inline-flex items-center gap-1">
+                  <Wifi className="h-3.5 w-3.5" />
+                  Live stream
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1">
+                  <WifiOff className="h-3.5 w-3.5" />
+                  Stream disconnected
+                </span>
+              )}
+            </Badge>
+            <Badge variant="outline">{argoState.description}</Badge>
+          </div>
+        </div>
+        {argoStatus ? (
+          <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+            <p className="truncate">
+              App: <span className="font-medium">{argoStatus.appName}</span>
+            </p>
+            <p>
+              Operation: {argoStatus.operationPhase ?? 'N/A'}
+              {argoStatus.operationMessage
+                ? ` - ${argoStatus.operationMessage}`
+                : ''}
+            </p>
+            <p>Updated: {argoUpdatedLabel}</p>
+            <p>
+              Health / Sync:{' '}
+              <span className="font-medium">
+                {argoStatus.healthStatus} / {argoStatus.syncStatus}
+              </span>
+            </p>
+          </div>
+        ) : null}
+      </div>
 
       <Card>
         <CardHeader>
