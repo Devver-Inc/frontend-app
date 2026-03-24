@@ -57,11 +57,9 @@ export function useLoadOrganizationsFromToken() {
             id: org.id,
             name: org.name,
           })) ?? []
-        if (!signal.aborted) {
-          hasLoaded.current = true
-          setOrganizations(orgs)
-          setIsLoadingOrganizations(false)
-        }
+        hasLoaded.current = true
+        setOrganizations(orgs)
+        setIsLoadingOrganizations(false)
       } catch {
         // token fetch failed, leave orgs as-is
         if (!signal.aborted) setIsLoadingOrganizations(false)

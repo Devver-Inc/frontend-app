@@ -7,7 +7,9 @@ import {
   FolderKanban,
   Home,
   MessageSquare,
+  Moon,
   Settings,
+  Sun,
   Users,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -44,10 +46,23 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
 
   const isOnOrgPage = pathname.startsWith('/organization')
   const [orgExpanded, setOrgExpanded] = useState(isOnOrgPage)
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
 
   useEffect(() => {
     if (isOnOrgPage) setOrgExpanded(true)
   }, [isOnOrgPage])
+
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark')
+    setTheme(isDark ? 'dark' : 'light')
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(nextTheme)
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+    localStorage.setItem('theme', nextTheme)
+  }
 
   return (
     <div className="flex flex-1 flex-col justify-between">
@@ -123,6 +138,25 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
 
       <div className="space-y-1 px-3 pb-2">
         <div className="mb-2 border-t border-sidebar-border" />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={toggleTheme}
+          className="h-auto w-full justify-start gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun className="h-4 w-4" />
+              Light mode
+            </>
+          ) : (
+            <>
+              <Moon className="h-4 w-4" />
+              Dark mode
+            </>
+          )}
+        </Button>
         {bottomLinks.map((item) => (
           <a
             key={item.href}

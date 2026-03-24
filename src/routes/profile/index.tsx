@@ -77,7 +77,7 @@ function ProfilePage() {
         const raw = claims as Record<string, unknown>
         const info = userInfo as Record<string, unknown> | undefined
         const p: UserProfile = {
-          sub: (raw.sub as string) ?? '',
+          sub: (raw.sub as string | undefined) ?? '',
           username: (raw.username as string | null) ?? null,
           name:
             (info?.name as string | null) ??
@@ -95,12 +95,13 @@ function ProfilePage() {
             (info?.email as string | null) ??
             (raw.email as string | null) ??
             null,
-          email_verified: (info?.email_verified as boolean) ?? false,
+          email_verified:
+            (info?.email_verified as boolean | undefined) ?? false,
           picture:
             (info?.picture as string | null) ??
             (raw.picture as string | null) ??
             null,
-          created_at: (raw.created_at as number) ?? 0,
+          created_at: (raw.created_at as number | undefined) ?? 0,
           organization_data: (
             (info?.organization_data as
               | Array<{
@@ -148,7 +149,6 @@ function ProfilePage() {
       }
     }
     void load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

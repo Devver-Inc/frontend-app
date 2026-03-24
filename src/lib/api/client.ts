@@ -50,9 +50,7 @@ async function buildAuthHeaders(
   const organizationId = includeOrganization
     ? (getOrganizationIdFn?.() ?? undefined)
     : undefined
-  const token = getAccessTokenFn
-    ? await getAccessTokenFn(API_INDICATOR, organizationId)
-    : undefined
+  const token = await getAccessTokenFn(API_INDICATOR, organizationId)
   const headers: Record<string, string> = {}
   if (token) {
     headers['Authorization'] = `Bearer ${token}`

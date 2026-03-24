@@ -197,10 +197,11 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
                         key={member.id}
                         type="button"
                         onClick={() => toggleMember(member.id)}
-                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${selected
+                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+                          selected
                             ? 'border-primary/50 bg-primary/10'
                             : 'border-border/60 hover:bg-accent/40'
-                          }`}
+                        }`}
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={member.avatarUrl ?? undefined} />
