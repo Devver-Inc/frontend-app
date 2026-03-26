@@ -87,6 +87,14 @@ export async function getProjectDeployments(
   return apiJson<Array<ProjectDeployment>>(`/projects/${projectId}/deployments`)
 }
 
+export async function getArgoCdStatus(
+  projectId: string,
+): Promise<ArgoDeploymentStatusEvent> {
+  return apiJson<ArgoDeploymentStatusEvent>(
+    `/projects/${projectId}/argocd/status`,
+  )
+}
+
 export async function getProjectDeploymentLogs(
   projectId: string,
   deploymentId: string,

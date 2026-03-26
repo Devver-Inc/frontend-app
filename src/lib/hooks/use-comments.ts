@@ -6,14 +6,20 @@ import { useOrganizationContext } from '@/lib/organization/organization-context'
 
 export function useProjectComments(
   projectId: string,
-  params?: { page?: number; pageSize?: number; search?: string },
+  params?: {
+    page?: number
+    pageSize?: number
+    search?: string
+    repo?: string
+    branch?: string
+  },
 ) {
   const { currentOrganizationId } = useOrganizationContext()
 
   return useQuery({
     queryKey: ['project-comments', currentOrganizationId, projectId, params],
     queryFn: () => getProjectComments(projectId, params),
-    enabled: !!currentOrganizationId && !!projectId,
+    enabled: !!projectId,
   })
 }
 

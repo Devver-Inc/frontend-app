@@ -12,10 +12,10 @@ export type MachineConfigurationInput = {
   ram: number
 }
 
-export type AccessControl = {
-  requireEmailAuth: boolean
-  publicAccess: boolean
-  restrictToTeamMembers: boolean
+export type OverlayCommentPermission = 'team_only' | 'email_required'
+
+export type OverlayAccessControl = {
+  commentPermission: OverlayCommentPermission
 }
 
 export type GetProjectLightDto = {
@@ -30,7 +30,7 @@ export type GetProjectDto = GetProjectLightDto & {
   createdBy: UserLight | null
   teamMembers: Array<UserLight>
   machineConfiguration: MachineConfiguration
-  accessControl: AccessControl
+  overlayAccessControl: OverlayAccessControl
   updatedAt: string
 }
 
@@ -49,7 +49,7 @@ export type CreateProjectInput = {
   description?: string
   machineConfiguration: MachineConfigurationInput
   teamMemberIds: Array<string>
-  accessControl: AccessControl
+  overlayAccessControl: OverlayAccessControl
 }
 
 export type UpdateProjectInput = Partial<CreateProjectInput>

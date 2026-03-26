@@ -1,6 +1,6 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLogto } from '@logto/react'
 
 import type {
@@ -10,6 +10,7 @@ import type {
 import {
   createProjectRepo,
   deleteProjectRepo,
+  getArgoCdStatus,
   getProjectDeploymentLogs,
   getProjectDeployments,
   getProjectRepos,
@@ -55,12 +56,15 @@ export function useDeleteProjectRepo(projectId: string) {
   })
 }
 
-export function useProjectDeployments(projectId: string) {
+export function useProjectDeployments(
+  projectId: string | undefined,
+  enabled: boolean,
+) {
   const { currentOrganizationId } = useOrganizationContext()
   return useQuery({
     queryKey: ['project-deployments', currentOrganizationId, projectId],
-    queryFn: () => getProjectDeployments(projectId),
-    enabled: !!currentOrganizationId && !!projectId,
+    queryFn: () => getProjectDeployments(projectId as string),
+    enabled: enabled && !!currentOrganizationId && !!projectId,
   })
 }
 
@@ -78,13 +82,15 @@ export function useArgoStatusStream(projectId: string | undefined) {
   const [isConnected, setIsConnected] = useState(false)
   const [streamError, setStreamError] = useState<string | null>(null)
   const [lastEventAt, setLastEventAt] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (!projectId || !isAuthenticated) return
 
+    setStatus(null)
+    setStreamError(null)
+    setLastEventAt(null)
+
     const abortController = new AbortController()
-    abortRef.current = abortController
 
     const connect = async () => {
       try {
@@ -93,6 +99,15 @@ export function useArgoStatusStream(projectId: string | undefined) {
           currentOrganizationId ?? undefined,
         )
         if (!token) throw new Error('Missing access token for ArgoCD stream')
+
+        try {
+          const snapshot = await getArgoCdStatus(projectId)
+          if (abortController.signal.aborted) return
+          setStatus(snapshot)
+          setLastEventAt(new Date().toISOString())
+        } catch {
+          // Snapshot is best-effort; SSE still delivers updates.
+        }
 
         await fetchEventSource(
           `${import.meta.env.VITE_API_BASE_URL}/projects/${projectId}/argocd/status/stream`,
@@ -112,6 +127,7 @@ export function useArgoStatusStream(projectId: string | undefined) {
               }
               setIsConnected(true)
               setStreamError(null)
+              await Promise.resolve()
             },
             onmessage(event) {
               setLastEventAt(new Date().toISOString())

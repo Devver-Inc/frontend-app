@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 
 const mainNav = [
   { to: '/', label: 'Home', icon: Home },
@@ -138,25 +139,47 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
 
       <div className="space-y-1 px-3 pb-2">
         <div className="mb-2 border-t border-sidebar-border" />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={toggleTheme}
-          className="h-auto w-full justify-start gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-        >
-          {theme === 'dark' ? (
-            <>
-              <Sun className="h-4 w-4" />
-              Light mode
-            </>
-          ) : (
-            <>
-              <Moon className="h-4 w-4" />
-              Dark mode
-            </>
-          )}
-        </Button>
+        <div className="flex justify-center items-center w-fit text-sm text-sidebar-foreground/70">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => (theme === 'dark' ? toggleTheme() : null)}
+            className={cn(
+              'hover:bg-transparent cursor-pointer',
+              theme === 'dark'
+                ? 'text-sidebar-foreground/60'
+                : 'text-sidebar-foreground',
+            )}
+          >
+            <Sun className="h-4 w-4" />
+          </Button>
+
+          <Switch
+            className="!bg-primary cursor-pointer"
+            checked={theme === 'dark'}
+            onCheckedChange={(checked) => {
+              const nextIsDark = checked
+              const currentIsDark = theme === 'dark'
+              if (nextIsDark === currentIsDark) return
+              toggleTheme()
+            }}
+            aria-label="Toggle theme"
+          />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => (theme === 'dark' ? null : toggleTheme())}
+            className={cn(
+              'hover:bg-transparent cursor-pointer',
+              theme === 'dark'
+                ? 'text-sidebar-foreground'
+                : 'text-sidebar-foreground/60',
+            )}
+          >
+            <Moon className="h-4 w-4" />
+          </Button>
+        </div>
         {bottomLinks.map((item) => (
           <a
             key={item.href}
