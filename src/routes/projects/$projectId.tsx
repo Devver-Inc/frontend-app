@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 
 import type { OverlayCommentPermission } from '@/lib/api/projects'
+import { CommentPermissionRadios } from '@/components/projects/comment-permission-radios'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -80,7 +81,6 @@ type ArgoStateTone = 'critical' | 'progress' | 'healthy' | 'neutral'
 type ArgoState = Readonly<{
   label: string
   description: string
-  variant: 'secondary' | 'destructive' | 'default'
   tone: ArgoStateTone
 }>
 
@@ -91,7 +91,6 @@ function getArgoState(
     return {
       label: 'No status yet',
       description: 'Waiting for ArgoCD status stream...',
-      variant: 'secondary',
       tone: 'neutral',
     }
   }
@@ -103,7 +102,6 @@ function getArgoState(
     return {
       label: 'Deployment issue',
       description: 'Missing + OutOfSync',
-      variant: 'destructive',
       tone: 'critical',
     }
   }
@@ -115,7 +113,6 @@ function getArgoState(
     return {
       label: 'Stabilizing',
       description: 'Progressing + Synced',
-      variant: 'secondary',
       tone: 'progress',
     }
   }
@@ -127,7 +124,6 @@ function getArgoState(
     return {
       label: 'Operational',
       description: 'Healthy + Synced',
-      variant: 'default',
       tone: 'healthy',
     }
   }
@@ -135,7 +131,6 @@ function getArgoState(
   return {
     label: 'Unknown state',
     description: `${argoStatus.healthStatus} + ${argoStatus.syncStatus}`,
-    variant: 'secondary',
     tone: 'neutral',
   }
 }
@@ -528,35 +523,10 @@ function ProjectDetailsPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label>Comment permission</Label>
-            <button
-              type="button"
-              onClick={() => setCommentPermission('team_only')}
-              className={`w-full rounded-lg border px-3 py-2.5 text-left transition ${getSelectableMemberClass(
-                commentPermission === 'team_only',
-              )}`}
-            >
-              <p className="text-sm font-medium">Team only</p>
-              <p className="text-xs text-muted-foreground">
-                Only project team members can read and post comments.
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCommentPermission('email_required')}
-              className={`w-full rounded-lg border px-3 py-2.5 text-left transition ${getSelectableMemberClass(
-                commentPermission === 'email_required',
-              )}`}
-            >
-              <p className="text-sm font-medium">Email required</p>
-              <p className="text-xs text-muted-foreground">
-                Guests can comment with an email; members/admins can comment
-                directly.
-              </p>
-            </button>
-          </div>
+          <CommentPermissionRadios
+            value={commentPermission}
+            onChange={setCommentPermission}
+          />
         </CardContent>
       </Card>
 

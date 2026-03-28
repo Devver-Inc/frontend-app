@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { CommentPermissionRadios } from '@/components/projects/comment-permission-radios'
 import { useCreateProject } from '@/lib/hooks/use-projects'
 import { useMembers } from '@/lib/hooks/use-members'
 
@@ -222,40 +223,11 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
               )}
             </div>
 
-            <div className="space-y-3">
-              <Label>Comment permission</Label>
-              <div className="space-y-2 rounded-md border border-border/60 p-3">
-                <button
-                  type="button"
-                  onClick={() => setCommentPermission('team_only')}
-                  className={`w-full rounded-lg border px-3 py-2.5 text-left transition ${
-                    commentPermission === 'team_only'
-                      ? 'border-primary/50 bg-primary/10'
-                      : 'border-border/60 hover:bg-accent/40'
-                  }`}
-                >
-                  <p className="text-sm font-medium">Team only</p>
-                  <p className="text-xs text-muted-foreground">
-                    Only project team members can read and post comments.
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCommentPermission('email_required')}
-                  className={`w-full rounded-lg border px-3 py-2.5 text-left transition ${
-                    commentPermission === 'email_required'
-                      ? 'border-primary/50 bg-primary/10'
-                      : 'border-border/60 hover:bg-accent/40'
-                  }`}
-                >
-                  <p className="text-sm font-medium">Email required</p>
-                  <p className="text-xs text-muted-foreground">
-                    Guests can comment with an email; members/admins can comment
-                    directly.
-                  </p>
-                </button>
-              </div>
-            </div>
+            <CommentPermissionRadios
+              value={commentPermission}
+              onChange={setCommentPermission}
+              groupClassName="rounded-md border border-border/60 p-3"
+            />
           </div>
           <DialogFooter className="mt-6">
             <Button

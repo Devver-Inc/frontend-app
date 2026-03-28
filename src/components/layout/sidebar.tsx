@@ -10,11 +10,14 @@ type SidebarProps = Readonly<{
 
 export function Sidebar({ onNavigate }: SidebarProps) {
   const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains('dark'),
+    typeof document === 'undefined'
+      ? false
+      : document.documentElement.classList.contains('dark'),
   )
 
   useEffect(() => {
     const el = document.documentElement
+    setIsDark(el.classList.contains('dark'))
     const observer = new MutationObserver(() => {
       setIsDark(el.classList.contains('dark'))
     })

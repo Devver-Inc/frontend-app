@@ -19,7 +19,7 @@ export function useProjectComments(
   return useQuery({
     queryKey: ['project-comments', currentOrganizationId, projectId, params],
     queryFn: () => getProjectComments(projectId, params),
-    enabled: !!projectId,
+    enabled: !!currentOrganizationId && !!projectId,
   })
 }
 

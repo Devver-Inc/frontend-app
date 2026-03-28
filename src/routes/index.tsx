@@ -46,7 +46,7 @@ function DashboardPage() {
         icon={Building2}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Link to="/projects">
           <Card className="glass-surface cursor-pointer border-border/50 transition-all hover:-translate-y-0.5 hover:border-border/70">
             <CardContent className="flex items-center gap-4 p-6">

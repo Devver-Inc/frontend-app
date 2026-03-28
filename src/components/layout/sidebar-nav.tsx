@@ -141,9 +141,12 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
         <div className="mb-2 border-t border-sidebar-border" />
         <div className="flex justify-center items-center w-fit text-sm text-sidebar-foreground/70">
           <Button
+            type="button"
             variant="ghost"
             size="sm"
-            onClick={() => (theme === 'dark' ? toggleTheme() : null)}
+            disabled={theme !== 'dark'}
+            aria-label="Switch to light mode"
+            onClick={() => (theme === 'dark' ? toggleTheme() : undefined)}
             className={cn(
               'hover:bg-transparent cursor-pointer',
               theme === 'dark'
@@ -151,7 +154,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
                 : 'text-sidebar-foreground',
             )}
           >
-            <Sun className="h-4 w-4" />
+            <Sun className="h-4 w-4" aria-hidden />
           </Button>
 
           <Switch
@@ -167,9 +170,12 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
           />
 
           <Button
+            type="button"
             variant="ghost"
             size="sm"
-            onClick={() => (theme === 'dark' ? null : toggleTheme())}
+            disabled={theme !== 'light'}
+            aria-label="Switch to dark mode"
+            onClick={() => (theme === 'light' ? toggleTheme() : undefined)}
             className={cn(
               'hover:bg-transparent cursor-pointer',
               theme === 'dark'
@@ -177,7 +183,7 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
                 : 'text-sidebar-foreground/60',
             )}
           >
-            <Moon className="h-4 w-4" />
+            <Moon className="h-4 w-4" aria-hidden />
           </Button>
         </div>
         {bottomLinks.map((item) => (
