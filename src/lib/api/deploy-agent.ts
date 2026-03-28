@@ -38,6 +38,39 @@ export type DeploymentLogs = {
   logs: Array<DeploymentLogEntry>
 }
 
+/** Argo CD `ApplicationStatus.health.status` */
+export type ArgoApplicationHealthStatus =
+  | 'Healthy'
+  | 'Progressing'
+  | 'Degraded'
+  | 'Suspended'
+  | 'Missing'
+  | 'Unknown'
+
+/** Argo CD `ApplicationStatus.sync.status` */
+export type ArgoApplicationSyncStatus =
+  | 'Synced'
+  | 'OutOfSync'
+  | 'Unknown'
+
+/** Typical `status.operationState.phase` values from Argo CD */
+export type ArgoOperationPhase =
+  | 'Pending'
+  | 'Running'
+  | 'Succeeded'
+  | 'Failed'
+  | 'Error'
+  | 'Terminating'
+
+export type ArgoDeploymentStatusEvent = {
+  appName: string
+  healthStatus: ArgoApplicationHealthStatus
+  syncStatus: ArgoApplicationSyncStatus
+  operationPhase?: ArgoOperationPhase
+  operationMessage?: string
+  timestamp: string
+}
+
 export type CreateProjectRepoInput = {
   name: string
 }
@@ -76,6 +109,14 @@ export async function getProjectDeployments(
   projectId: string,
 ): Promise<Array<ProjectDeployment>> {
   return apiJson<Array<ProjectDeployment>>(`/projects/${projectId}/deployments`)
+}
+
+export async function getArgoCdStatus(
+  projectId: string,
+): Promise<ArgoDeploymentStatusEvent> {
+  return apiJson<ArgoDeploymentStatusEvent>(
+    `/projects/${projectId}/argocd/status`,
+  )
 }
 
 export async function getProjectDeploymentLogs(

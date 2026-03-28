@@ -3,16 +3,23 @@ import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertTriangle,
+  CircleAlert,
   GitBranch,
+  LoaderCircle,
   MessageSquare,
   Save,
   Settings2,
+  ShieldCheck,
   TerminalSquare,
   Trash2,
   UserPlus,
+  Wifi,
+  WifiOff,
   X,
 } from 'lucide-react'
 
+import type { OverlayCommentPermission } from '@/lib/api/projects'
+import { CommentPermissionRadios } from '@/components/projects/comment-permission-radios'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -20,7 +27,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -49,6 +55,7 @@ import {
   useProjectComments,
 } from '@/lib/hooks/use-comments'
 import {
+  useArgoStatusStream,
   useCreateProjectRepo,
   useDeleteProjectRepo,
   useProjectDeploymentLogs,
@@ -62,10 +69,146 @@ import {
   useRemoveProjectMember,
   useUpdateProject,
 } from '@/lib/hooks/use-projects'
+import { isValidRepoName } from '@/lib/validation-patterns'
+import type { ArgoDeploymentStatusEvent } from '@/lib/api/deploy-agent'
 
 export const Route = createFileRoute('/projects/$projectId')({
   component: ProjectDetailsPage,
 })
+
+type ArgoStateTone = 'critical' | 'progress' | 'healthy' | 'neutral'
+
+type ArgoState = Readonly<{
+  label: string
+  description: string
+  tone: ArgoStateTone
+}>
+
+function getArgoState(
+  argoStatus: ArgoDeploymentStatusEvent | null,
+): ArgoState {
+  if (!argoStatus) {
+    return {
+      label: 'No status yet',
+      description: 'Waiting for ArgoCD status stream...',
+      tone: 'neutral',
+    }
+  }
+
+  if (
+    argoStatus.healthStatus === 'Missing' &&
+    argoStatus.syncStatus === 'OutOfSync'
+  ) {
+    return {
+      label: 'Deployment issue',
+      description: 'Missing + OutOfSync',
+      tone: 'critical',
+    }
+  }
+
+  if (
+    argoStatus.healthStatus === 'Progressing' &&
+    argoStatus.syncStatus === 'Synced'
+  ) {
+    return {
+      label: 'Stabilizing',
+      description: 'Progressing + Synced',
+      tone: 'progress',
+    }
+  }
+
+  if (
+    argoStatus.healthStatus === 'Healthy' &&
+    argoStatus.syncStatus === 'Synced'
+  ) {
+    return {
+      label: 'Operational',
+      description: 'Healthy + Synced',
+      tone: 'healthy',
+    }
+  }
+
+  return {
+    label: 'Unknown state',
+    description: `${argoStatus.healthStatus} + ${argoStatus.syncStatus}`,
+    tone: 'neutral',
+  }
+}
+
+function renderArgoToneIcon(tone: ArgoStateTone) {
+  if (tone === 'critical') {
+    return <CircleAlert className="h-4 w-4 text-red-500" />
+  }
+  if (tone === 'progress') {
+    return <LoaderCircle className="h-4 w-4 animate-spin text-amber-500" />
+  }
+  if (tone === 'healthy') {
+    return <ShieldCheck className="h-4 w-4 text-emerald-500" />
+  }
+  return <TerminalSquare className="h-4 w-4 text-muted-foreground" />
+}
+
+function getArgoStreamBadgeVariant(
+  isArgoConnected: boolean,
+): 'default' | 'secondary' {
+  return isArgoConnected ? 'default' : 'secondary'
+}
+
+function renderArgoStreamIndicator(isArgoConnected: boolean) {
+  if (isArgoConnected) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <Wifi className="h-3.5 w-3.5" />
+        Live stream
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <WifiOff className="h-3.5 w-3.5" />
+      Stream disconnected
+    </span>
+  )
+}
+
+function getPendingButtonLabel(
+  isPending: boolean,
+  pendingLabel: string,
+  normalLabel: string,
+) {
+  return isPending ? pendingLabel : normalLabel
+}
+
+function getSelectableMemberClass(selected: boolean) {
+  return selected
+    ? 'border-primary/50 bg-primary/10'
+    : 'border-border/60 hover:bg-accent/40'
+}
+
+function getDeploymentBadgeVariant(status: string) {
+  return status === 'deployed' ? 'default' : 'secondary'
+}
+
+function normalizeMachineResource(value: number | undefined): number {
+  if (value == null) return 1
+  return Math.max(0.5, Math.min(2, value))
+}
+
+function formatUpdatedAtLabel(updatedAt: string | null | undefined) {
+  if (!updatedAt) return 'N/A'
+  return new Date(updatedAt).toLocaleString()
+}
+
+function getIsRepoNameValid(repoName: string) {
+  const trimmed = repoName.trim()
+  if (!trimmed) return true
+  return isValidRepoName(trimmed)
+}
+
+function getDeploymentsToShow<T>(shouldLoadDeployments: boolean, items: T[]) {
+  return shouldLoadDeployments ? items : []
+}
 
 function ProjectDetailsPage() {
   const { projectId } = Route.useParams()
@@ -82,16 +225,33 @@ function ProjectDetailsPage() {
   const { data: repos = [] } = useProjectRepos(projectId)
   const createRepoMutation = useCreateProjectRepo(projectId)
   const deleteRepoMutation = useDeleteProjectRepo(projectId)
-  const { data: deployments = [] } = useProjectDeployments(projectId)
   const logsMutation = useProjectDeploymentLogs(projectId)
+  const {
+    status: argoStatus,
+    isConnected: isArgoConnected,
+    lastEventAt: argoLastEventAt,
+  } = useArgoStatusStream(projectId)
+
+  const shouldLoadDeployments =
+    argoStatus?.healthStatus === 'Healthy' &&
+    argoStatus?.syncStatus === 'Synced'
+
+  const { data: deployments = [] } = useProjectDeployments(
+    projectId,
+    shouldLoadDeployments,
+  )
+
+  const deploymentsToShow = getDeploymentsToShow(
+    shouldLoadDeployments,
+    deployments,
+  )
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [cpuCores, setCpuCores] = useState(1)
   const [ram, setRam] = useState(1)
-  const [requireEmailAuth, setRequireEmailAuth] = useState(true)
-  const [publicAccess, setPublicAccess] = useState(false)
-  const [restrictToTeamMembers, setRestrictToTeamMembers] = useState(false)
+  const [commentPermission, setCommentPermission] =
+    useState<OverlayCommentPermission>('email_required')
   const [membersDialogOpen, setMembersDialogOpen] = useState(false)
   const [selectedMemberIds, setSelectedMemberIds] = useState<Array<string>>([])
   const [comment, setComment] = useState('')
@@ -108,9 +268,7 @@ function ProjectDetailsPage() {
       Math.max(0.5, Math.min(2, project.machineConfiguration.cpuCores)),
     )
     setRam(Math.max(0.5, Math.min(2, project.machineConfiguration.ram)))
-    setRequireEmailAuth(project.accessControl.requireEmailAuth)
-    setPublicAccess(project.accessControl.publicAccess)
-    setRestrictToTeamMembers(project.accessControl.restrictToTeamMembers)
+    setCommentPermission(project.overlayAccessControl.commentPermission)
   }, [project])
 
   const availableMembers = useMemo(() => {
@@ -119,12 +277,23 @@ function ProjectDetailsPage() {
     return all.filter((m) => !existingIds.has(m.id))
   }, [membersData?.data, project?.teamMembers])
 
-  const normalizedProjectCpu = project
-    ? Math.max(0.5, Math.min(2, project.machineConfiguration.cpuCores))
-    : 1
-  const normalizedProjectRam = project
-    ? Math.max(0.5, Math.min(2, project.machineConfiguration.ram))
-    : 1
+  const normalizedProjectCpu = normalizeMachineResource(
+    project?.machineConfiguration.cpuCores,
+  )
+  const normalizedProjectRam = normalizeMachineResource(
+    project?.machineConfiguration.ram,
+  )
+
+  const argoState = getArgoState(argoStatus)
+  const argoUpdatedLabel = formatUpdatedAtLabel(
+    argoLastEventAt ?? argoStatus?.timestamp ?? null,
+  )
+  const argoToneClasses: Record<typeof argoState.tone, string> = {
+    critical: 'border-red-500/40 bg-red-500/10',
+    progress: 'border-amber-500/40 bg-amber-500/10',
+    healthy: 'border-emerald-500/40 bg-emerald-500/10',
+    neutral: 'border-border/60 bg-background/40',
+  }
 
   const isDirty =
     project != null &&
@@ -132,9 +301,8 @@ function ProjectDetailsPage() {
       description.trim() !== (project.description ?? '') ||
       cpuCores !== normalizedProjectCpu ||
       ram !== normalizedProjectRam ||
-      requireEmailAuth !== project.accessControl.requireEmailAuth ||
-      publicAccess !== project.accessControl.publicAccess ||
-      restrictToTeamMembers !== project.accessControl.restrictToTeamMembers)
+      commentPermission !== project.overlayAccessControl.commentPermission)
+  const isRepoNameValid = getIsRepoNameValid(repoName)
 
   const toggleMember = (userId: string) => {
     setSelectedMemberIds((prev) =>
@@ -150,10 +318,8 @@ function ProjectDetailsPage() {
         name: name.trim(),
         description: description.trim() || undefined,
         machineConfiguration: { cpuCores, ram },
-        accessControl: {
-          requireEmailAuth,
-          publicAccess,
-          restrictToTeamMembers,
+        overlayAccessControl: {
+          commentPermission,
         },
       },
       {
@@ -175,7 +341,6 @@ function ProjectDetailsPage() {
   }
 
   const handleAddMembers = () => {
-    if (selectedMemberIds.length === 0) return
     addMembersMutation.mutate(
       { userIds: selectedMemberIds },
       {
@@ -200,7 +365,6 @@ function ProjectDetailsPage() {
 
   const handleCreateComment = () => {
     const content = comment.trim()
-    if (!content) return
     createCommentMutation.mutate(
       { content },
       {
@@ -215,7 +379,6 @@ function ProjectDetailsPage() {
 
   const handleCreateRepo = () => {
     const nextRepoName = repoName.trim()
-    if (!nextRepoName) return
     createRepoMutation.mutate(
       { name: nextRepoName },
       {
@@ -255,6 +418,41 @@ function ProjectDetailsPage() {
         description="Configure resources, access and team members."
         icon={Settings2}
       />
+
+      <div
+        className={`rounded-xl border px-4 py-3 ${argoToneClasses[argoState.tone]}`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {renderArgoToneIcon(argoState.tone)}
+            <p className="text-sm font-semibold">{argoState.label}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={getArgoStreamBadgeVariant(isArgoConnected)}>
+              {renderArgoStreamIndicator(isArgoConnected)}
+            </Badge>
+            <Badge variant="outline">{argoState.description}</Badge>
+          </div>
+        </div>
+        {argoStatus && (
+          <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+            <p className="truncate">
+              App: <span className="font-medium">{argoStatus.appName}</span>
+            </p>
+            <p>
+              Operation: {argoStatus.operationPhase ?? 'N/A'}
+              {argoStatus.operationMessage && ` - ${argoStatus.operationMessage}`}
+            </p>
+            <p>Updated: {argoUpdatedLabel}</p>
+            <p>
+              Health / Sync:{' '}
+              <span className="font-medium">
+                {argoStatus.healthStatus} / {argoStatus.syncStatus}
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
 
       <Card>
         <CardHeader>
@@ -325,46 +523,10 @@ function ProjectDetailsPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-              <div>
-                <p className="text-sm font-medium">Require Email Auth</p>
-                <p className="text-xs text-muted-foreground">
-                  Ask email verification before access.
-                </p>
-              </div>
-              <Switch
-                checked={requireEmailAuth}
-                onCheckedChange={setRequireEmailAuth}
-              />
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-              <div>
-                <p className="text-sm font-medium">Public Access</p>
-                <p className="text-xs text-muted-foreground">
-                  Make project publicly accessible.
-                </p>
-              </div>
-              <Switch
-                checked={publicAccess}
-                onCheckedChange={setPublicAccess}
-              />
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-              <div>
-                <p className="text-sm font-medium">Restrict to Team Members</p>
-                <p className="text-xs text-muted-foreground">
-                  Only assigned members can access this project.
-                </p>
-              </div>
-              <Switch
-                checked={restrictToTeamMembers}
-                onCheckedChange={setRestrictToTeamMembers}
-              />
-            </div>
-          </div>
+          <CommentPermissionRadios
+            value={commentPermission}
+            onChange={setCommentPermission}
+          />
         </CardContent>
       </Card>
 
@@ -386,11 +548,13 @@ function ProjectDetailsPage() {
                 </DialogDescription>
               </DialogHeader>
 
-              {availableMembers.length === 0 ? (
+              {availableMembers.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   No available members to add.
                 </p>
-              ) : (
+              )}
+
+              {availableMembers.length > 0 && (
                 <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                   {availableMembers.map((member) => {
                     const selected = selectedMemberIds.includes(member.id)
@@ -399,11 +563,9 @@ function ProjectDetailsPage() {
                         key={member.id}
                         type="button"
                         onClick={() => toggleMember(member.id)}
-                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
-                          selected
-                            ? 'border-primary/50 bg-primary/10'
-                            : 'border-border/60 hover:bg-accent/40'
-                        }`}
+                        className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${getSelectableMemberClass(
+                          selected,
+                        )}`}
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={member.avatarUrl ?? undefined} />
@@ -419,7 +581,7 @@ function ProjectDetailsPage() {
                             {member.id}
                           </p>
                         </div>
-                        {selected ? <Badge>Selected</Badge> : null}
+                        {selected && <Badge>Selected</Badge>}
                       </button>
                     )
                   })}
@@ -440,18 +602,23 @@ function ProjectDetailsPage() {
                     addMembersMutation.isPending
                   }
                 >
-                  {addMembersMutation.isPending ? 'Adding...' : 'Add Members'}
+                  {getPendingButtonLabel(
+                    addMembersMutation.isPending,
+                    'Adding...',
+                    'Add Members',
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardHeader>
         <CardContent>
-          {project.teamMembers.length === 0 ? (
+          {project.teamMembers.length === 0 && (
             <p className="py-4 text-sm text-muted-foreground">
               No project members yet.
             </p>
-          ) : (
+          )}
+          {project.teamMembers.length > 0 && (
             <div className="space-y-2">
               {project.teamMembers.map((member) => (
                 <div
@@ -510,38 +677,81 @@ function ProjectDetailsPage() {
                 onClick={handleCreateComment}
                 disabled={createCommentMutation.isPending || !comment.trim()}
               >
-                {createCommentMutation.isPending
-                  ? 'Posting...'
-                  : 'Post Comment'}
+                {createCommentMutation.isPending && 'Posting...'}
+                {!createCommentMutation.isPending && 'Post Comment'}
               </Button>
             </div>
           </div>
 
           <div className="space-y-2">
-            {(commentsData?.data ?? []).length === 0 ? (
+            {(commentsData?.data ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">
                 No comments for this project yet.
               </p>
-            ) : (
+            )}
+
+            {(commentsData?.data ?? []).length > 0 &&
               commentsData?.data.map((item) => (
                 <div
                   key={item.id}
                   className="rounded-lg border border-border/60 px-3 py-2.5"
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{item.userId}</p>
-                    {item.position?.pageUrl ? (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {item.position.pageUrl}
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={item.author?.avatarUrl ?? undefined}
+                        />
+                        <AvatarFallback>
+                          {(item.author?.name ?? item.author?.email ?? 'Guest')
+                            .charAt(0)
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">
+                          {item.author?.name ?? item.author?.email ?? 'Guest'}
+                        </p>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                          {item.repo && (
+                            <Badge variant="secondary">{item.repo}</Badge>
+                          )}
+                          {item.branch && (
+                            <Badge variant="outline">{item.branch}</Badge>
+                          )}
+                          {item.author?.email && (
+                            <span className="text-xs text-muted-foreground">
+                              {item.author.email}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-start gap-1">
+                      {item.position?.pageUrl && (
+                        <a
+                          href={item.position.pageUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="max-w-[240px] truncate text-xs text-primary hover:underline"
+                          title="Open comment position"
+                        >
+                          View location
+                        </a>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(item.createdAt).toLocaleString()}
                       </p>
-                    ) : null}
+                    </div>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
+
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {item.content}
                   </p>
                 </div>
               ))
-            )}
+            }
           </div>
         </CardContent>
       </Card>
@@ -555,18 +765,41 @@ function ProjectDetailsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
-            <Input
-              value={repoName}
-              onChange={(e) => setRepoName(e.target.value)}
-              placeholder="Repository name"
-            />
+            <div className="flex-1">
+              <Input
+                value={repoName}
+                onChange={(e) => setRepoName(e.target.value)}
+                placeholder="Repository name"
+              />
+              {isRepoNameValid ? null : (
+                <p className="mt-1 text-xs text-destructive">
+                  Use lowercase letters, numbers, and hyphens only.
+                </p>
+              )}
+            </div>
             <Button
               onClick={handleCreateRepo}
-              disabled={createRepoMutation.isPending || !repoName.trim()}
+              disabled={
+                createRepoMutation.isPending ||
+                !repoName.trim() ||
+                !isRepoNameValid ||
+                !shouldLoadDeployments
+              }
             >
-              {createRepoMutation.isPending ? 'Creating...' : 'Create Repo'}
+              {getPendingButtonLabel(
+                createRepoMutation.isPending,
+                'Creating...',
+                'Create Repo',
+              )}
             </Button>
           </div>
+
+          {shouldLoadDeployments ? null : (
+            <p className="text-sm text-muted-foreground">
+              Creating repositories is available once the project is{' '}
+              <span className="font-medium">Healthy + Synced</span>.
+            </p>
+          )}
 
           {repos.length === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -618,12 +851,21 @@ function ProjectDetailsPage() {
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
-            {deployments.length === 0 ? (
+            {shouldLoadDeployments ? null : (
+              <p className="text-sm text-muted-foreground">
+                Waiting for ArgoCD status to become{' '}
+                <span className="font-medium">Healthy + Synced</span>.
+              </p>
+            )}
+
+            {shouldLoadDeployments && deploymentsToShow.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No deployments for this project yet.
               </p>
-            ) : (
-              deployments.map((deployment) => (
+            ) : null}
+
+            {shouldLoadDeployments && deploymentsToShow.length > 0
+              ? deploymentsToShow.map((deployment) => (
                 <div
                   key={deployment.id}
                   className="rounded-lg border border-border/60 px-3 py-2.5"
@@ -635,16 +877,14 @@ function ProjectDetailsPage() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Updated{' '}
-                        {new Date(deployment.updatedAt).toLocaleString()}
+                        {new Date(
+                          deployment.updatedAt,
+                        ).toLocaleString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge
-                        variant={
-                          deployment.status === 'deployed'
-                            ? 'default'
-                            : 'secondary'
-                        }
+                        variant={getDeploymentBadgeVariant(deployment.status)}
                       >
                         {deployment.status}
                       </Badge>
@@ -659,7 +899,7 @@ function ProjectDetailsPage() {
                     </div>
                   </div>
                   {selectedDeploymentIdForLogs === deployment.id &&
-                  logsMutation.data ? (
+                    logsMutation.data ? (
                     <div className="mt-3 space-y-1 rounded-md border border-border/50 bg-background/40 p-2">
                       {logsMutation.data.logs.length === 0 ? (
                         <p className="text-xs text-muted-foreground">
@@ -685,7 +925,7 @@ function ProjectDetailsPage() {
                   ) : null}
                 </div>
               ))
-            )}
+              : null}
           </div>
         </CardContent>
       </Card>
@@ -704,7 +944,11 @@ function ProjectDetailsPage() {
             className="gap-1.5"
           >
             <Save className="h-4 w-4" />
-            {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+            {getPendingButtonLabel(
+              updateMutation.isPending,
+              'Saving...',
+              'Save Changes',
+            )}
           </Button>
         </div>
       ) : null}
@@ -756,7 +1000,11 @@ function ProjectDetailsPage() {
                   }
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  {deleteMutation.isPending ? 'Deleting...' : 'Delete Project'}
+                  {getPendingButtonLabel(
+                    deleteMutation.isPending,
+                    'Deleting...',
+                    'Delete Project',
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

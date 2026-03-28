@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import type { GetProjectDto } from '@/lib/api/projects'
+import type {
+  GetProjectDto,
+  OverlayCommentPermission,
+} from '@/lib/api/projects'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +21,7 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
+import { CommentPermissionRadios } from '@/components/projects/comment-permission-radios'
 import { useCreateProject } from '@/lib/hooks/use-projects'
 import { useMembers } from '@/lib/hooks/use-members'
 
@@ -33,9 +36,8 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
   const [cpuCores, setCpuCores] = useState(1)
   const [ram, setRam] = useState(1)
   const [selectedMemberIds, setSelectedMemberIds] = useState<Array<string>>([])
-  const [requireEmailAuth, setRequireEmailAuth] = useState(true)
-  const [publicAccess, setPublicAccess] = useState(false)
-  const [restrictToTeamMembers, setRestrictToTeamMembers] = useState(false)
+  const [commentPermission, setCommentPermission] =
+    useState<OverlayCommentPermission>('email_required')
 
   const { mutate, isPending } = useCreateProject()
   const { data: membersData } = useMembers({ pageSize: 50 })
@@ -60,10 +62,8 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
           ram,
         },
         teamMemberIds: selectedMemberIds,
-        accessControl: {
-          requireEmailAuth,
-          publicAccess,
-          restrictToTeamMembers,
+        overlayAccessControl: {
+          commentPermission,
         },
       },
       {
@@ -74,9 +74,7 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
           setCpuCores(1)
           setRam(1)
           setSelectedMemberIds([])
-          setRequireEmailAuth(true)
-          setPublicAccess(false)
-          setRestrictToTeamMembers(false)
+          setCommentPermission('email_required')
           toast.success('Project created successfully.')
           onCreated?.(project)
         },
@@ -225,51 +223,11 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
               )}
             </div>
 
-            <div className="space-y-3">
-              <Label>Access control</Label>
-              <div className="space-y-2 rounded-md border border-border/60 p-3">
-                <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-                  <div>
-                    <p className="text-sm font-medium">Require Email Auth</p>
-                    <p className="text-xs text-muted-foreground">
-                      Ask email verification before access.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={requireEmailAuth}
-                    onCheckedChange={setRequireEmailAuth}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-                  <div>
-                    <p className="text-sm font-medium">Public Access</p>
-                    <p className="text-xs text-muted-foreground">
-                      Make project publicly accessible.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={publicAccess}
-                    onCheckedChange={setPublicAccess}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
-                  <div>
-                    <p className="text-sm font-medium">
-                      Restrict to Team Members
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Only assigned members can access this project.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={restrictToTeamMembers}
-                    onCheckedChange={setRestrictToTeamMembers}
-                  />
-                </div>
-              </div>
-            </div>
+            <CommentPermissionRadios
+              value={commentPermission}
+              onChange={setCommentPermission}
+              groupClassName="rounded-md border border-border/60 p-3"
+            />
           </div>
           <DialogFooter className="mt-6">
             <Button
