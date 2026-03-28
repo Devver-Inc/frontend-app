@@ -42,10 +42,12 @@ function RootComponent() {
   const unauthorizedInProgressRef = useRef(false)
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    // Never redirect to Logto from the OAuth callback route: the SDK must finish
+    // exchanging the code first; otherwise each navigation starts a new sign-in (loop).
+    if (!isLoading && !isAuthenticated && !isBareRoute) {
       signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
     }
-  }, [isLoading, isAuthenticated, signIn])
+  }, [isLoading, isAuthenticated, isBareRoute, signIn])
 
   if (isAuthenticated) {
     setApiClientOptions({
