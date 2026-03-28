@@ -8,6 +8,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  # Run JS-based actions on Node 24 (GitHub is deprecating Node 20 on runners).
+  FORCE_JAVASCRIPT_ACTIONS_NODE24: true
 
 jobs:
   deploy:
@@ -17,7 +19,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Lowercase image name
         id: image
@@ -42,7 +44,7 @@ jobs:
             type=sha,prefix={{branch}}-
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
