@@ -27,7 +27,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: () => <div>404 - Not Found</div>,
 })
 
-const BARE_ROUTES = new Set(['/callback', '/callback/'])
+const BARE_ROUTES = new Set([
+  '/callback',
+  '/callback/',
+  '/overlay-auth',
+  '/overlay-auth/',
+])
 
 function RootComponent() {
   const { signIn, isAuthenticated, isLoading, getAccessToken } = useLogto()

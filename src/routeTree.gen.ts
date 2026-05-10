@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OverlayAuthRouteImport } from './routes/overlay-auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
@@ -18,6 +19,11 @@ import { Route as OrganizationsNewRouteImport } from './routes/organizations/new
 import { Route as OrganizationSettingsRouteImport } from './routes/organization/settings'
 import { Route as OrganizationMembersRouteImport } from './routes/organization/members'
 
+const OverlayAuthRoute = OverlayAuthRouteImport.update({
+  id: '/overlay-auth',
+  path: '/overlay-auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const OrganizationMembersRoute = OrganizationMembersRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/overlay-auth': typeof OverlayAuthRoute
   '/organization/members': typeof OrganizationMembersRoute
   '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/overlay-auth': typeof OverlayAuthRoute
   '/organization/members': typeof OrganizationMembersRoute
   '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/overlay-auth': typeof OverlayAuthRoute
   '/organization/members': typeof OrganizationMembersRoute
   '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/overlay-auth'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/overlay-auth'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/overlay-auth'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OverlayAuthRoute: typeof OverlayAuthRoute
   OrganizationMembersRoute: typeof OrganizationMembersRoute
   OrganizationSettingsRoute: typeof OrganizationSettingsRoute
   OrganizationsNewRoute: typeof OrganizationsNewRoute
@@ -136,6 +149,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/overlay-auth': {
+      id: '/overlay-auth'
+      path: '/overlay-auth'
+      fullPath: '/overlay-auth'
+      preLoaderRoute: typeof OverlayAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OverlayAuthRoute: OverlayAuthRoute,
   OrganizationMembersRoute: OrganizationMembersRoute,
   OrganizationSettingsRoute: OrganizationSettingsRoute,
   OrganizationsNewRoute: OrganizationsNewRoute,
