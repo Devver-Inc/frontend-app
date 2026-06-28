@@ -16,6 +16,7 @@ type OverlayAuthMessage = {
   accessToken?: string
   expiresAt?: number
   userName?: string
+  userEmail?: string
   error?: string
 }
 
@@ -151,6 +152,7 @@ function OverlayAuthRoute() {
           expiresAt: getJwtExpiration(accessToken),
           userName:
             userInfo?.name ?? userInfo?.username ?? userInfo?.email ?? undefined,
+          userEmail: userInfo?.email ?? undefined,
         })
         setMessage('Connexion terminee.')
         window.setTimeout(() => window.close(), 100)
