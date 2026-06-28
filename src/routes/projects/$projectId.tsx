@@ -121,9 +121,17 @@ function getArgoState(
     argoStatus.healthStatus === 'Healthy' &&
     argoStatus.syncStatus === 'Synced'
   ) {
+    if (!argoStatus.podReady) {
+      return {
+        label: 'Pod warming up',
+        description: 'Healthy + Synced, pod not ready',
+        tone: 'progress',
+      }
+    }
+
     return {
       label: 'Operational',
-      description: 'Healthy + Synced',
+      description: 'Healthy + Synced, pod ready',
       tone: 'healthy',
     }
   }
@@ -232,9 +240,7 @@ function ProjectDetailsPage() {
     lastEventAt: argoLastEventAt,
   } = useArgoStatusStream(projectId)
 
-  const shouldLoadDeployments =
-    argoStatus?.healthStatus === 'Healthy' &&
-    argoStatus?.syncStatus === 'Synced'
+  const shouldLoadDeployments = argoStatus?.podReady === true
 
   const { data: deployments = [] } = useProjectDeployments(
     projectId,
@@ -792,7 +798,7 @@ function ProjectDetailsPage() {
           {shouldLoadDeployments ? null : (
             <p className="text-sm text-muted-foreground">
               Creating repositories is available once the project is{' '}
-              <span className="font-medium">Healthy + Synced</span>.
+              <span className="font-medium">pod ready</span>.
             </p>
           )}
 
@@ -848,8 +854,8 @@ function ProjectDetailsPage() {
           <div className="space-y-2">
             {shouldLoadDeployments ? null : (
               <p className="text-sm text-muted-foreground">
-                Waiting for ArgoCD status to become{' '}
-                <span className="font-medium">Healthy + Synced</span>.
+                Waiting for the project pod to become{' '}
+                <span className="font-medium">ready</span>.
               </p>
             )}
 

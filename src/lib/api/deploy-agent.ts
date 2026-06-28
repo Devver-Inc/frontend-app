@@ -62,6 +62,15 @@ export type ArgoOperationPhase =
   | 'Error'
   | 'Terminating'
 
+export type ArgoApplicationDeploymentStatus = {
+  appName: string
+  type: string
+  healthStatus: ArgoApplicationHealthStatus
+  syncStatus: ArgoApplicationSyncStatus
+  operationPhase?: ArgoOperationPhase
+  operationMessage?: string
+}
+
 export type ArgoDeploymentStatusEvent = {
   appName: string
   healthStatus: ArgoApplicationHealthStatus
@@ -69,6 +78,8 @@ export type ArgoDeploymentStatusEvent = {
   operationPhase?: ArgoOperationPhase
   operationMessage?: string
   timestamp: string
+  podReady: boolean
+  applications: Array<ArgoApplicationDeploymentStatus>
 }
 
 export type CreateProjectRepoInput = {
