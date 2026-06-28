@@ -52,7 +52,12 @@ export type CreateProjectInput = {
   overlayAccessControl: OverlayAccessControl
 }
 
-export type UpdateProjectInput = Partial<CreateProjectInput>
+export type UpdateProjectInput = Partial<
+  Pick<
+    CreateProjectInput,
+    'description' | 'machineConfiguration' | 'overlayAccessControl'
+  >
+>
 
 export type AddProjectMembersInput = {
   userIds: Array<string>

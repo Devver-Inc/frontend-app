@@ -246,7 +246,6 @@ function ProjectDetailsPage() {
     deployments,
   )
 
-  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [cpuCores, setCpuCores] = useState(1)
   const [ram, setRam] = useState(1)
@@ -262,7 +261,6 @@ function ProjectDetailsPage() {
 
   useEffect(() => {
     if (!project) return
-    setName(project.name)
     setDescription(project.description ?? '')
     setCpuCores(
       Math.max(0.5, Math.min(2, project.machineConfiguration.cpuCores)),
@@ -297,8 +295,7 @@ function ProjectDetailsPage() {
 
   const isDirty =
     project != null &&
-    (name.trim() !== project.name ||
-      description.trim() !== (project.description ?? '') ||
+    (description.trim() !== (project.description ?? '') ||
       cpuCores !== normalizedProjectCpu ||
       ram !== normalizedProjectRam ||
       commentPermission !== project.overlayAccessControl.commentPermission)
@@ -315,7 +312,6 @@ function ProjectDetailsPage() {
   const handleSave = () => {
     updateMutation.mutate(
       {
-        name: name.trim(),
         description: description.trim() || undefined,
         machineConfiguration: { cpuCores, ram },
         overlayAccessControl: {
@@ -463,9 +459,8 @@ function ProjectDetailsPage() {
             <Label htmlFor="project-name">Project name</Label>
             <Input
               id="project-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={128}
+              value={project.name}
+              readOnly
             />
           </div>
 
@@ -940,7 +935,7 @@ function ProjectDetailsPage() {
           </div>
           <Button
             onClick={handleSave}
-            disabled={updateMutation.isPending || !name.trim()}
+            disabled={updateMutation.isPending}
             className="gap-1.5"
           >
             <Save className="h-4 w-4" />
