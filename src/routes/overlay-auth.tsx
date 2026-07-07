@@ -17,7 +17,24 @@ type OverlayAuthMessage = {
   expiresAt?: number
   userName?: string
   userEmail?: string
+  profileOnly?: boolean
+  errorCode?: OverlayAuthErrorCode
   error?: string
+}
+
+type OverlayAuthErrorCode =
+  | 'organization_access_denied'
+  | 'token_unavailable'
+  | 'unknown_error'
+
+class OverlayAuthRelayError extends Error {
+  constructor(
+    public readonly code: OverlayAuthErrorCode,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'OverlayAuthRelayError'
+  }
 }
 
 const OIDC_CALLBACK_PARAMS = [
@@ -77,6 +94,10 @@ function getJwtExpiration(token: string): number | undefined {
   }
 }
 
+function getProfileSessionExpiration(): number {
+  return Math.floor(Date.now() / 1000) + 3600
+}
+
 function isValidOrigin(origin: string | undefined): origin is string {
   if (!origin) return false
 
@@ -91,6 +112,26 @@ function isValidOrigin(origin: string | undefined): origin is string {
 function postToOverlay(targetOrigin: string, message: OverlayAuthMessage) {
   if (!window.opener) return
   window.opener.postMessage(message, targetOrigin)
+}
+
+function normalizeAuthError(error: unknown): OverlayAuthRelayError {
+  if (error instanceof OverlayAuthRelayError) return error
+
+  return new OverlayAuthRelayError(
+    'unknown_error',
+    error instanceof Error ? error.message : 'Connexion impossible.',
+  )
+}
+
+function createTokenUnavailableError(
+  organizationId: string | undefined,
+): OverlayAuthRelayError {
+  return new OverlayAuthRelayError(
+    organizationId ? 'organization_access_denied' : 'token_unavailable',
+    organizationId
+      ? "Votre compte Devver n'est pas membre de l'organisation de ce projet."
+      : "Devver n'a pas pu récupérer un token d'accès pour ce projet.",
+  )
 }
 
 function OverlayAuthRoute() {
@@ -135,13 +176,20 @@ function OverlayAuthRoute() {
     const sendToken = async () => {
       try {
         const resource = search.resource ?? import.meta.env.VITE_API_BASE_URL
-        const accessToken = await getAccessToken(
-          resource,
-          search.organizationId,
-        )
+        let accessToken: string | undefined
 
-        if (!accessToken) {
-          throw new Error('Unable to get a Logto access token.')
+        if (search.organizationId) {
+          try {
+            accessToken = await getAccessToken(resource, search.organizationId)
+          } catch {
+            throw createTokenUnavailableError(search.organizationId)
+          }
+
+          if (!accessToken) {
+            throw createTokenUnavailableError(search.organizationId)
+          }
+        } else {
+          accessToken = await getAccessToken(resource).catch(() => undefined)
         }
 
         const userInfo = await fetchUserInfo().catch(() => undefined)
@@ -149,22 +197,25 @@ function OverlayAuthRoute() {
           type: 'devver-overlay-auth',
           nonce,
           accessToken,
-          expiresAt: getJwtExpiration(accessToken),
+          expiresAt: accessToken
+            ? getJwtExpiration(accessToken)
+            : getProfileSessionExpiration(),
           userName:
             userInfo?.name ?? userInfo?.username ?? userInfo?.email ?? undefined,
           userEmail: userInfo?.email ?? undefined,
+          profileOnly: !accessToken,
         })
         setMessage('Connexion terminee.')
         window.setTimeout(() => window.close(), 100)
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Connexion impossible.'
+        const normalizedError = normalizeAuthError(error)
         postToOverlay(targetOrigin, {
           type: 'devver-overlay-auth',
           nonce,
-          error: errorMessage,
+          errorCode: normalizedError.code,
+          error: normalizedError.message,
         })
-        setMessage(errorMessage)
+        setMessage(normalizedError.message)
       }
     }
 
