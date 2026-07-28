@@ -121,8 +121,8 @@ export function SidebarUser() {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            variant="destructive"
             onClick={() => signOut(import.meta.env.VITE_LOGTO_SIGN_OUT_URI)}
-            className="text-destructive-foreground focus:text-destructive-foreground"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sign out

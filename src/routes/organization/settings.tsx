@@ -319,7 +319,7 @@ function OrganizationSettingsPage() {
 
       <Card className="glass-surface border-destructive/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-destructive-foreground">
+          <CardTitle className="flex items-center gap-2 text-base text-destructive">
             <AlertTriangle className="h-4 w-4" />
             Danger Zone
           </CardTitle>

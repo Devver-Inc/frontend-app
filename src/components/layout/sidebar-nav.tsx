@@ -6,7 +6,6 @@ import {
   FileText,
   FolderKanban,
   Home,
-  MessageSquare,
   Moon,
   Settings,
   Sun,
@@ -29,12 +28,7 @@ const orgSubNav = [
 
 const bottomLinks = [
   { href: 'https://docs.devver.app', label: 'Docs', icon: FileText },
-  {
-    href: 'https://discord.gg/devver',
-    label: 'Community',
-    icon: MessageSquare,
-  },
-  { href: 'https://github.com/devver', label: 'Github', icon: Code2 },
+  { href: 'https://github.com/Devver-Inc', label: 'Github', icon: Code2 },
 ] as const
 
 type SidebarNavProps = Readonly<{
