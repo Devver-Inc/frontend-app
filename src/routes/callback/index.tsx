@@ -1,23 +1,15 @@
-import { useHandleSignInCallback, useLogto } from '@logto/react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useHandleSignInCallback } from '@logto/react'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { LoaderCircle } from 'lucide-react'
-import { useEffect } from 'react'
+
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/callback/')({
   component: CallbackRoute,
 })
 
 function CallbackRoute() {
-  const { isAuthenticated } = useLogto()
-  const navigate = useNavigate()
-
-  const { isLoading } = useHandleSignInCallback(() => {
-    navigate({ to: '/' })
-  })
-
-  useEffect(() => {
-    if (isAuthenticated) navigate({ to: '/' })
-  }, [isAuthenticated, navigate])
+  const { isLoading, error } = useHandleSignInCallback()
 
   if (isLoading) {
     return (
@@ -27,5 +19,31 @@ function CallbackRoute() {
     )
   }
 
-  return null
+  if (error) {
+    return (
+      <div className="grid h-screen place-items-center px-4">
+        <div className="page-shell max-w-md space-y-4 px-8 py-10 text-center">
+          <h1 className="text-lg font-semibold">Authentication failed</h1>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
+          <Link to="/">
+            <Button>Return to Devver</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid h-screen place-items-center px-4">
+      <div className="page-shell max-w-md space-y-4 px-8 py-10 text-center">
+        <h1 className="text-lg font-semibold">Authentication complete</h1>
+        <p className="text-sm text-muted-foreground">
+          You can continue to Devver.
+        </p>
+        <Link to="/">
+          <Button>Continue</Button>
+        </Link>
+      </div>
+    </div>
+  )
 }

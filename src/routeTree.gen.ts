@@ -18,6 +18,7 @@ import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projec
 import { Route as OrganizationsNewRouteImport } from './routes/organizations/new'
 import { Route as OrganizationSettingsRouteImport } from './routes/organization/settings'
 import { Route as OrganizationMembersRouteImport } from './routes/organization/members'
+import { Route as InvitationsJoinRouteImport } from './routes/invitations/join'
 
 const OverlayAuthRoute = OverlayAuthRouteImport.update({
   id: '/overlay-auth',
@@ -64,10 +65,16 @@ const OrganizationMembersRoute = OrganizationMembersRouteImport.update({
   path: '/organization/members',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvitationsJoinRoute = InvitationsJoinRouteImport.update({
+  id: '/invitations/join',
+  path: '/invitations/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/overlay-auth': typeof OverlayAuthRoute
+  '/invitations/join': typeof InvitationsJoinRoute
   '/organization/members': typeof OrganizationMembersRoute
   '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/overlay-auth': typeof OverlayAuthRoute
+  '/invitations/join': typeof InvitationsJoinRoute
   '/organization/members': typeof OrganizationMembersRoute
   '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/overlay-auth': typeof OverlayAuthRoute
+  '/invitations/join': typeof InvitationsJoinRoute
   '/organization/members': typeof OrganizationMembersRoute
   '/organization/settings': typeof OrganizationSettingsRoute
   '/organizations/new': typeof OrganizationsNewRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/overlay-auth'
+    | '/invitations/join'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/overlay-auth'
+    | '/invitations/join'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/overlay-auth'
+    | '/invitations/join'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OverlayAuthRoute: typeof OverlayAuthRoute
+  InvitationsJoinRoute: typeof InvitationsJoinRoute
   OrganizationMembersRoute: typeof OrganizationMembersRoute
   OrganizationSettingsRoute: typeof OrganizationSettingsRoute
   OrganizationsNewRoute: typeof OrganizationsNewRoute
@@ -212,12 +225,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizationMembersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invitations/join': {
+      id: '/invitations/join'
+      path: '/invitations/join'
+      fullPath: '/invitations/join'
+      preLoaderRoute: typeof InvitationsJoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OverlayAuthRoute: OverlayAuthRoute,
+  InvitationsJoinRoute: InvitationsJoinRoute,
   OrganizationMembersRoute: OrganizationMembersRoute,
   OrganizationSettingsRoute: OrganizationSettingsRoute,
   OrganizationsNewRoute: OrganizationsNewRoute,

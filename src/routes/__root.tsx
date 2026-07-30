@@ -30,6 +30,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 const BARE_ROUTES = new Set([
   '/callback',
   '/callback/',
+  '/invitations/join',
+  '/invitations/join/',
+  '/overlay-auth',
+  '/overlay-auth/',
+])
+
+const AUTH_FLOW_ROUTES = new Set([
+  '/callback',
+  '/callback/',
   '/overlay-auth',
   '/overlay-auth/',
 ])
@@ -41,6 +50,7 @@ function RootComponent() {
 
   const routerState = useRouterState()
   const isBareRoute = BARE_ROUTES.has(routerState.location.pathname)
+  const isAuthFlowRoute = AUTH_FLOW_ROUTES.has(routerState.location.pathname)
 
   const getAccessTokenRef = useRef(getAccessToken)
   getAccessTokenRef.current = getAccessToken
@@ -49,10 +59,22 @@ function RootComponent() {
   useEffect(() => {
     // Never redirect to Logto from the OAuth callback route: the SDK must finish
     // exchanging the code first; otherwise each navigation starts a new sign-in (loop).
-    if (!isLoading && !isAuthenticated && !isBareRoute) {
-      signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
+    if (!isLoading && !isAuthenticated && !isAuthFlowRoute) {
+      void signIn({
+        redirectUri: import.meta.env.VITE_LOGTO_CALLBACK_URI,
+        postRedirectUri: new URL(
+          routerState.location.href,
+          globalThis.location.origin,
+        ),
+      })
     }
-  }, [isLoading, isAuthenticated, isBareRoute, signIn])
+  }, [
+    isLoading,
+    isAuthenticated,
+    isAuthFlowRoute,
+    routerState.location.href,
+    signIn,
+  ])
 
   if (isAuthenticated) {
     setApiClientOptions({
@@ -61,7 +83,13 @@ function RootComponent() {
       onUnauthorized: () => {
         if (unauthorizedInProgressRef.current) return
         unauthorizedInProgressRef.current = true
-        void signIn(import.meta.env.VITE_LOGTO_CALLBACK_URI)
+        void signIn({
+          redirectUri: import.meta.env.VITE_LOGTO_CALLBACK_URI,
+          postRedirectUri: new URL(
+            routerState.location.href,
+            globalThis.location.origin,
+          ),
+        })
       },
     })
   }

@@ -1,4 +1,9 @@
-import { apiFetch, apiJson, apiJsonWithoutOrganization } from './client'
+import {
+  apiFetch,
+  apiFetchWithoutOrganization,
+  apiJson,
+  apiJsonWithoutOrganization,
+} from './client'
 
 export type OrganizationRole = {
   id: string
@@ -75,6 +80,28 @@ export async function createInvitation(
 
 export async function getOrganizationInvitations(): Promise<Array<Invitation>> {
   return apiJson<Array<Invitation>>('/organizations/invitations')
+}
+
+export async function getInvitationById(
+  invitationId: string,
+): Promise<Invitation> {
+  return apiJsonWithoutOrganization<Invitation>(
+    `/organizations/invitations/${encodeURIComponent(invitationId)}`,
+  )
+}
+
+export async function acceptInvitation(invitationId: string): Promise<void> {
+  const res = await apiFetchWithoutOrganization(
+    `/organizations/invitations/${encodeURIComponent(invitationId)}/status`,
+    {
+      method: 'PATCH',
+      body: { status: 'Accepted' },
+    },
+  )
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`API ${res.status}: ${text || res.statusText}`)
+  }
 }
 
 export async function removeUserFromOrganization(
