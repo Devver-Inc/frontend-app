@@ -8,23 +8,28 @@ export type ProjectRepo = {
   createdAt: string
 }
 
-export type DeploymentServiceConfig = {
-  root?: string
-  install?: string
-  build: string
-  start: string
-  depends?: Array<string>
+export type DeploymentServiceResult = {
+  port: number
+  url: string
+}
+
+export type DeploymentProcessStatus = 'online' | 'stopped' | 'errored'
+
+export type DeploymentProcess = {
+  name: string
+  pm_id: number
+  status: DeploymentProcessStatus
+  cpu: number
+  memory: number
 }
 
 export type ProjectDeployment = {
-  id: string
+  deploymentId: string
   repo: string
   branch: string
-  commit: string | null
-  services: Record<string, DeploymentServiceConfig>
-  status: 'deployed' | 'failed' | 'removed'
-  createdAt: string
-  updatedAt: string
+  commit: string
+  service: Partial<Record<'web' | 'api', DeploymentServiceResult>>
+  process: DeploymentProcess | null
 }
 
 export type DeploymentLogEntry = {

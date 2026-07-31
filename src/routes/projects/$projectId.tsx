@@ -18,8 +18,10 @@ import {
   X,
 } from 'lucide-react'
 
+import type { ArgoDeploymentStatusEvent } from '@/lib/api/deploy-agent'
 import type { OverlayCommentPermission } from '@/lib/api/projects'
 import { CommentPermissionRadios } from '@/components/projects/comment-permission-radios'
+import { DeploymentCard } from '@/components/projects/deployment-card'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -70,7 +72,6 @@ import {
   useUpdateProject,
 } from '@/lib/hooks/use-projects'
 import { isValidRepoName } from '@/lib/validation-patterns'
-import type { ArgoDeploymentStatusEvent } from '@/lib/api/deploy-agent'
 
 export const Route = createFileRoute('/projects/$projectId')({
   component: ProjectDetailsPage,
@@ -194,10 +195,6 @@ function getSelectableMemberClass(selected: boolean) {
     : 'border-border/60 hover:bg-accent/40'
 }
 
-function getDeploymentBadgeVariant(status: string) {
-  return status === 'deployed' ? 'default' : 'secondary'
-}
-
 function normalizeMachineResource(value: number | undefined): number {
   if (value == null) return 1
   return Math.max(0.5, Math.min(2, value))
@@ -214,7 +211,10 @@ function getIsRepoNameValid(repoName: string) {
   return isValidRepoName(trimmed)
 }
 
-function getDeploymentsToShow<T>(shouldLoadDeployments: boolean, items: T[]) {
+function getDeploymentsToShow<T>(
+  shouldLoadDeployments: boolean,
+  items: Array<T>,
+) {
   return shouldLoadDeployments ? items : []
 }
 
@@ -844,11 +844,17 @@ function ProjectDetailsPage() {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <TerminalSquare className="h-4 w-4" />
             Deployments
           </CardTitle>
+          {shouldLoadDeployments && deploymentsToShow.length > 0 ? (
+            <Badge variant="secondary">
+              {deploymentsToShow.length}{' '}
+              {deploymentsToShow.length === 1 ? 'deployment' : 'deployments'}
+            </Badge>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
@@ -867,65 +873,21 @@ function ProjectDetailsPage() {
 
             {shouldLoadDeployments && deploymentsToShow.length > 0
               ? deploymentsToShow.map((deployment) => (
-                <div
-                  key={deployment.id}
-                  className="rounded-lg border border-border/60 px-3 py-2.5"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {deployment.repo} / {deployment.branch}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Updated{' '}
-                        {new Date(
-                          deployment.updatedAt,
-                        ).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={getDeploymentBadgeVariant(deployment.status)}
-                      >
-                        {deployment.status}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleGetLogs(deployment.id)}
-                        disabled={logsMutation.isPending}
-                      >
-                        Logs
-                      </Button>
-                    </div>
-                  </div>
-                  {selectedDeploymentIdForLogs === deployment.id &&
-                    logsMutation.data ? (
-                    <div className="mt-3 space-y-1 rounded-md border border-border/50 bg-background/40 p-2">
-                      {logsMutation.data.logs.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          No logs available.
-                        </p>
-                      ) : (
-                        logsMutation.data.logs
-                          .slice(0, 100)
-                          .map((entry, idx) => (
-                            <p
-                              key={`${deployment.id}-${idx}`}
-                              className="text-xs"
-                            >
-                              <span className="text-muted-foreground">
-                                [{entry.timestamp}] [{entry.service}] [
-                                {entry.level}]
-                              </span>{' '}
-                              {entry.message}
-                            </p>
-                          ))
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              ))
+                  <DeploymentCard
+                    key={deployment.deploymentId}
+                    deployment={deployment}
+                    isSelectedForLogs={
+                      selectedDeploymentIdForLogs === deployment.deploymentId
+                    }
+                    isLogsPending={logsMutation.isPending}
+                    logs={
+                      selectedDeploymentIdForLogs === deployment.deploymentId
+                        ? logsMutation.data
+                        : undefined
+                    }
+                    onGetLogs={handleGetLogs}
+                  />
+                ))
               : null}
           </div>
         </CardContent>
