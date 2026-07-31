@@ -25,14 +25,34 @@ function Avatar({
   )
 }
 
+function shouldBlockAvatarRequest(src?: string) {
+  if (!src) return false
+
+  try {
+    const currentLocation = globalThis.location
+    const url = new URL(src, currentLocation.href)
+
+    return (
+      url.hostname.endsWith('.svc.cluster.local') ||
+      (currentLocation.protocol === 'https:' && url.protocol === 'http:')
+    )
+  } catch {
+    return false
+  }
+}
+
 function AvatarImage({
   className,
+  src,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+  const safeSrc = shouldBlockAvatarRequest(src) ? undefined : src
+
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
       className={cn('aspect-square size-full', className)}
+      src={safeSrc}
       {...props}
     />
   )
