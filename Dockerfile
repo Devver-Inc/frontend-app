@@ -1,13 +1,17 @@
 # Stage 1: Build
-FROM node:24-alpine AS builder
+FROM node:24.21.0-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Enable pnpm via corepack (version pinned by "packageManager" in package.json)
+RUN corepack enable
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install dependencies (pnpm store cached across builds)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 # Copy source code
 COPY . .
@@ -28,10 +32,13 @@ ENV VITE_LOGTO_CALLBACK_URI=$VITE_LOGTO_CALLBACK_URI
 ENV VITE_LOGTO_SIGN_OUT_URI=$VITE_LOGTO_SIGN_OUT_URI
 
 # Build the application
-RUN npm run build
+RUN pnpm build
 
 # Stage 2: Production with Nginx
-FROM nginx:alpine
+FROM nginx:1.30.5-alpine
+
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
