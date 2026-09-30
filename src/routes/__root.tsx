@@ -1,134 +1,79 @@
-import { TanStackDevtools } from '@tanstack/react-devtools'
+import { TanStackDevtools } from "@tanstack/react-devtools"
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools"
 import {
+  ClientOnly,
+  HeadContent,
   Outlet,
+  Scripts,
   createRootRouteWithContext,
-  useRouterState,
-} from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+} from "@tanstack/react-router"
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
+import type { ReactNode } from "react"
+import { Toaster } from "sonner"
+import { ThemeScript } from "@/components/layout/theme-script"
+import { ThemeSync } from "@/components/layout/theme-sync"
+import appCss from "@/styles/app.css?url"
+import type { RouterContext } from "@/types/router-context.types"
 
-import { useLogto } from '@logto/react'
-import { LoaderCircle } from 'lucide-react'
-import { useEffect, useRef } from 'react'
-import { Toaster } from 'sonner'
-import TanStackQueryDevtools from '../lib/devtools'
-
-import type { QueryClient } from '@tanstack/react-query'
-import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { setApiClientOptions } from '@/lib/api/client'
-import { useOrganizationContext } from '@/lib/organization/organization-context'
-import { useLoadOrganizationsFromToken } from '@/lib/auth/useUserOrganizations'
-
-interface MyRouterContext {
-  queryClient: QueryClient
-}
-
-export const Route = createRootRouteWithContext<MyRouterContext>()({
-  component: RootComponent,
-  notFoundComponent: () => <div>404 - Not Found</div>,
+export const Route = createRootRouteWithContext<RouterContext>()({
+  head: () => ({
+    meta: [
+      { charSet: "UTF-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1.0" },
+      { name: "theme-color", content: "#000000" },
+      {
+        name: "description",
+        content: "Web site created using create-tsrouter-app",
+      },
+      { title: "Devver" },
+    ],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/logo192.png" },
+      { rel: "manifest", href: "/manifest.json" },
+    ],
+  }),
+  shellComponent: RootDocument,
+  component: RootLayout,
 })
 
-const BARE_ROUTES = new Set([
-  '/callback',
-  '/callback/',
-  '/invitations/join',
-  '/invitations/join/',
-  '/overlay-auth',
-  '/overlay-auth/',
-])
-
-const AUTH_FLOW_ROUTES = new Set([
-  '/callback',
-  '/callback/',
-  '/overlay-auth',
-  '/overlay-auth/',
-])
-
-function RootComponent() {
-  const { signIn, isAuthenticated, isLoading, getAccessToken } = useLogto()
-  const { getOrganizationId } = useOrganizationContext()
-  const isProd = import.meta.env.PROD
-
-  const routerState = useRouterState()
-  const isBareRoute = BARE_ROUTES.has(routerState.location.pathname)
-  const isAuthFlowRoute = AUTH_FLOW_ROUTES.has(routerState.location.pathname)
-
-  const getAccessTokenRef = useRef(getAccessToken)
-  getAccessTokenRef.current = getAccessToken
-  const unauthorizedInProgressRef = useRef(false)
-
-  useEffect(() => {
-    // Never redirect to Logto from the OAuth callback route: the SDK must finish
-    // exchanging the code first; otherwise each navigation starts a new sign-in (loop).
-    if (!isLoading && !isAuthenticated && !isAuthFlowRoute) {
-      void signIn({
-        redirectUri: import.meta.env.VITE_LOGTO_CALLBACK_URI,
-        postRedirectUri: new URL(
-          routerState.location.href,
-          globalThis.location.origin,
-        ),
-      })
-    }
-  }, [
-    isLoading,
-    isAuthenticated,
-    isAuthFlowRoute,
-    routerState.location.href,
-    signIn,
-  ])
-
-  if (isAuthenticated) {
-    setApiClientOptions({
-      getAccessToken: (...args) => getAccessTokenRef.current(...args),
-      getOrganizationId,
-      onUnauthorized: () => {
-        if (unauthorizedInProgressRef.current) return
-        unauthorizedInProgressRef.current = true
-        void signIn({
-          redirectUri: import.meta.env.VITE_LOGTO_CALLBACK_URI,
-          postRedirectUri: new URL(
-            routerState.location.href,
-            globalThis.location.origin,
-          ),
-        })
-      },
-    })
-  }
-
-  useLoadOrganizationsFromToken()
-
-  if (isLoading && !isAuthenticated) {
-    return (
-      <div className="grid h-screen place-items-center bg-background">
-        <LoaderCircle
-          size={36}
-          className="animate-spin text-muted-foreground"
-        />
-      </div>
-    )
-  }
-
+function RootLayout() {
   return (
     <>
-      {isBareRoute ? (
+      <ThemeSync />
+      {/* SPA mode serves one prerendered shell for every URL: pages only
+          render once hydrated, so the shell matches whatever route loads. */}
+      <ClientOnly>
         <Outlet />
-      ) : (
-        <DashboardLayout>
-          <Outlet />
-        </DashboardLayout>
-      )}
+      </ClientOnly>
       <Toaster richColors position="bottom-right" />
-      {isProd === false && (
+    </>
+  )
+}
+
+function RootDocument({ children }: { children: ReactNode }) {
+  return (
+    // ThemeScript sets the `dark` class of <html> before hydration.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+        <HeadContent />
+      </head>
+      <body>
+        {children}
         <TanStackDevtools
-          config={{ position: 'bottom-left' }}
+          config={{ position: "bottom-left" }}
           plugins={[
             {
-              name: 'Tanstack Router',
+              name: "TanStack Router",
               render: <TanStackRouterDevtoolsPanel />,
             },
-            TanStackQueryDevtools,
+            { name: "TanStack Query", render: <ReactQueryDevtoolsPanel /> },
           ]}
         />
-      )}
-    </>
+        <Scripts />
+      </body>
+    </html>
   )
 }

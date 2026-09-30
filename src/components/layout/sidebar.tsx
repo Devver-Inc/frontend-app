@@ -1,38 +1,24 @@
-import { useEffect, useState } from 'react'
-import { Link } from '@tanstack/react-router'
-import { SidebarNav } from './sidebar-nav'
-import { SidebarUser } from './sidebar-user'
-import { OrganizationSwitcher } from '@/components/organizations/organization-switcher'
+import { Link } from "@tanstack/react-router"
+import { SidebarNav } from "@/components/layout/sidebar-nav"
+import { SidebarUser } from "@/components/layout/sidebar-user"
+import { OrganizationSwitcher } from "@/features/organizations/components/organization-switcher"
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode"
+import { useUiStore } from "@/stores/ui.store"
 
-type SidebarProps = Readonly<{
-  onNavigate?: () => void
-}>
-
-export function Sidebar({ onNavigate }: SidebarProps) {
-  const [isDark, setIsDark] = useState(() =>
-    typeof document === 'undefined'
-      ? false
-      : document.documentElement.classList.contains('dark'),
-  )
-
-  useEffect(() => {
-    const el = document.documentElement
-    setIsDark(el.classList.contains('dark'))
-    const observer = new MutationObserver(() => {
-      setIsDark(el.classList.contains('dark'))
-    })
-
-    observer.observe(el, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
-
-  const logoSrc = isDark ? '/logo.png' : '/favicon.png'
+export function Sidebar() {
+  const isDark = useIsDarkMode()
+  const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen)
+  const closeMobileNav = () => setMobileNavOpen(false)
 
   return (
     <aside className="glass-surface-strong flex h-full w-64 flex-col border-r border-sidebar-border/80 bg-sidebar/90">
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border/80 px-5">
-        <Link to="/" className="flex gap-0.5" onClick={onNavigate}>
-          <img src={logoSrc} alt="Devver Logo" className="h-7" />
+        <Link to="/" className="flex gap-0.5" onClick={closeMobileNav}>
+          <img
+            src={isDark ? "/logo.png" : "/favicon.png"}
+            alt="Devver Logo"
+            className="h-7"
+          />
           <span className="text-2xl font-bold tracking-widest text-sidebar-foreground">
             EVVER
           </span>
@@ -43,7 +29,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         <OrganizationSwitcher />
       </div>
 
-      <SidebarNav onNavigate={onNavigate} />
+      <SidebarNav onNavigate={closeMobileNav} />
       <SidebarUser />
     </aside>
   )

@@ -1,75 +1,24 @@
-import { useLogto } from '@logto/react'
-import { Link } from '@tanstack/react-router'
-import { ChevronsUpDown, LogOut, User } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Link } from "@tanstack/react-router"
+import { ChevronsUpDown, LogOut, User } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-
-interface LogtoClaims {
-  sub?: string
-  username?: string
-  name?: string
-  email?: string
-  picture?: string
-}
+} from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuthClient } from "@/features/auth/hooks/use-auth-client"
+import { useAuthUser } from "@/features/auth/hooks/use-auth-user"
+import { getInitials } from "@/lib/utils/get-initials"
 
 export function SidebarUser() {
-  const { signOut, getIdTokenClaims } = useLogto()
-  const [user, setUser] = useState<{
-    name: string | null
-    email: string | null
-    picture: string | null
-  }>({ name: null, email: null, picture: null })
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    setIsLoading(true)
-
-    getIdTokenClaims()
-      .then((claims) => {
-        if (!claims) return
-
-        const typedClaims = claims as unknown as LogtoClaims
-        if (cancelled) return
-
-        setUser({
-          name: typedClaims.username ?? typedClaims.name ?? null,
-          email: typedClaims.email ?? null,
-          picture: typedClaims.picture ?? null,
-        })
-      })
-      .catch(() => {
-        // If claims can't be fetched, keep the user empty and stop the loading UI.
-      })
-      .finally(() => {
-        if (cancelled) return
-        setIsLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [getIdTokenClaims])
-
-  const initials = user.name
-    ? user.name
-        .split(' ')
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
-    : '?'
+  const auth = useAuthClient()
+  const user = useAuthUser()
+  const isLoading = user === undefined
+  const displayName = user ? (user.username ?? user.name) : null
 
   return (
     <div className="border-t border-sidebar-border px-3 py-3">
@@ -84,7 +33,7 @@ export function SidebarUser() {
             {isLoading ? (
               <div className="flex w-full items-center gap-3">
                 <Skeleton className="h-8 w-8 rounded-full" />
-                <div className="flex-1 overflow-hidden space-y-2">
+                <div className="flex-1 space-y-2 overflow-hidden">
                   <Skeleton className="h-4 w-28 rounded-md" />
                   <Skeleton className="h-3 w-36 rounded-md" />
                 </div>
@@ -92,16 +41,16 @@ export function SidebarUser() {
             ) : (
               <>
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.picture ?? undefined} />
+                  <AvatarImage src={user?.picture ?? undefined} />
                   <AvatarFallback className="bg-sidebar-accent text-xs">
-                    {initials}
+                    {displayName ? getInitials(displayName) : "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 overflow-hidden">
                   <p className="truncate font-medium text-sidebar-foreground">
-                    {user.name ?? 'User'}
+                    {displayName ?? "User"}
                   </p>
-                  {user.email && (
+                  {user?.email && (
                     <p className="truncate text-xs text-sidebar-foreground/60">
                       {user.email}
                     </p>
@@ -122,7 +71,7 @@ export function SidebarUser() {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onClick={() => signOut(import.meta.env.VITE_LOGTO_SIGN_OUT_URI)}
+            onClick={() => void auth.signOut()}
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sign out

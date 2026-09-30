@@ -1,202 +1,91 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL
+import type { z } from "zod"
+import { ApiError } from "@/lib/api/api-error"
+import { authClient } from "@/lib/auth/auth"
+import { env } from "@/lib/env"
 
-const API_INDICATOR = import.meta.env.VITE_LOGTO_API_INDICATOR ?? API_BASE
+type QueryValue = string | number | boolean | null | undefined
 
-export class ApiError extends Error {
-  status: number
-  details?: unknown
-  isUnauthorized: boolean
-
-  constructor(status: number, message: string, details?: unknown) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    this.details = details
-    this.isUnauthorized = status === 401
-  }
+export type RequestOptions = {
+  query?: Record<string, QueryValue>
+  body?: unknown
+  signal?: AbortSignal
+  // Requests an organization token: the API scopes the call to it.
+  organizationId?: string | null
 }
 
-export type ApiClientOptions = {
-  getAccessToken: (
-    resource?: string,
-    organizationId?: string,
-  ) => Promise<string | undefined>
-  getOrganizationId?: () => string | null
-  onUnauthorized?: () => void
+type ApiMethod = {
+  <TSchema extends z.ZodType>(
+    path: string,
+    options: RequestOptions & { schema: TSchema }
+  ): Promise<z.output<TSchema>>
+  (path: string, options?: RequestOptions): Promise<void>
 }
 
-let getAccessTokenFn:
-  | ((
-      resource?: string,
-      organizationId?: string,
-    ) => Promise<string | undefined>)
-  | undefined
-let getOrganizationIdFn: (() => string | null) | undefined
-let onUnauthorizedFn: (() => void) | undefined
-let unauthorizedNotifiedAt = 0
+let isSigningInAgain = false
 
-export function setApiClientOptions(options: ApiClientOptions) {
-  getAccessTokenFn = options.getAccessToken
-  getOrganizationIdFn = options.getOrganizationId
-  onUnauthorizedFn = options.onUnauthorized
+const signInAgain = () => {
+  if (isSigningInAgain) return
+  isSigningInAgain = true
+  void authClient.signIn({ redirectTo: window.location.href })
 }
 
-async function buildAuthHeaders(
-  includeOrganization: boolean,
-): Promise<Record<string, string>> {
-  if (!getAccessTokenFn) {
-    throw new Error('Authentication is initializing. Please retry.')
-  }
-  const organizationId = includeOrganization
-    ? (getOrganizationIdFn?.() ?? undefined)
-    : undefined
-  const token = await getAccessTokenFn(API_INDICATOR, organizationId)
-  const headers: Record<string, string> = {}
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  return headers
-}
-
-export type ApiRequestBody = FormData | object
-type InternalRequestInit = Omit<RequestInit, 'body'> & {
-  body?: ApiRequestBody
-  _retriedAfter401?: boolean
-}
-type ApiErrorPayload = {
-  message?: string | Array<string>
-  error?: string
-}
-
-function buildFetchInit(
-  headers: Record<string, string>,
-  init: InternalRequestInit,
-): RequestInit {
-  const { body, ...rest } = init
-
-  if (body instanceof FormData) {
-    return {
-      ...rest,
-      body,
-      headers: {
-        ...headers,
-        ...(init.headers as Record<string, string>),
-      },
-    }
-  }
-
-  if (body != null && typeof body === 'object') {
-    headers['Content-Type'] = 'application/json'
-  }
-
-  return {
-    ...rest,
-    body:
-      body != null && typeof body === 'object'
-        ? JSON.stringify(body)
-        : (body as BodyInit | undefined),
-    headers: {
-      ...headers,
-      ...(init.headers as Record<string, string>),
-    },
-  }
-}
-
-async function internalFetch(
+export const buildApiUrl = (
   path: string,
-  includeOrganization: boolean,
-  init: InternalRequestInit = {},
+  query: RequestOptions["query"] = {}
+): URL => {
+  const url = new URL(`${env.VITE_API_BASE_URL}${path}`)
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== null && value !== undefined && value !== "")
+      url.searchParams.set(key, String(value))
+  }
+  return url
+}
+
+async function send(
+  method: string,
+  path: string,
+  options: RequestOptions,
+  isRetry = false
 ): Promise<Response> {
-  const headers = await buildAuthHeaders(includeOrganization)
-  const response = await fetch(
-    `${API_BASE}${path}`,
-    buildFetchInit(headers, init),
-  )
+  const { query, body, signal, organizationId } = options
+  const headers = new Headers({ Accept: "application/json" })
+  const token = await authClient.getAccessToken({ organizationId })
+  if (token) headers.set("Authorization", `Bearer ${token}`)
 
-  if (response.status === 401 && !init._retriedAfter401) {
-    return internalFetch(path, includeOrganization, {
-      ...init,
-      _retriedAfter401: true,
-    })
-  }
+  const isFormData = body instanceof FormData
+  // The browser sets the multipart boundary itself.
+  if (body !== undefined && !isFormData)
+    headers.set("Content-Type", "application/json")
 
-  if (response.status === 401) {
-    const now = Date.now()
-    if (now - unauthorizedNotifiedAt > 10_000) {
-      unauthorizedNotifiedAt = now
-      onUnauthorizedFn?.()
-    }
-  }
+  const response = await fetch(buildApiUrl(path, query), {
+    method,
+    headers,
+    signal,
+    body: isFormData || body === undefined ? body : JSON.stringify(body),
+  })
 
+  if (response.status !== 401) return response
+  // One retry in case the token expired in flight, then the session is gone:
+  // back to the Logto sign-in page.
+  if (!isRetry) return send(method, path, options, true)
+  signInAgain()
   return response
 }
 
-function parseApiErrorPayload(text: string): {
-  parsed: unknown
-  message: string | null
-} {
-  try {
-    const parsed = JSON.parse(text) as ApiErrorPayload
-    if (Array.isArray(parsed.message) && parsed.message.length > 0) {
-      return { parsed, message: parsed.message.join(', ') }
-    }
-    if (typeof parsed.message === 'string' && parsed.message.length > 0) {
-      return { parsed, message: parsed.message }
-    }
-    if (typeof parsed.error === 'string' && parsed.error.length > 0) {
-      return { parsed, message: parsed.error }
-    }
-    return { parsed, message: null }
-  } catch {
-    return { parsed: undefined, message: null }
-  }
-}
+const createMethod = (method: string): ApiMethod =>
+  (async (
+    path: string,
+    { schema, ...options }: RequestOptions & { schema?: z.ZodType } = {}
+  ) => {
+    const response = await send(method, path, options)
+    if (!response.ok) throw await ApiError.fromResponse(response)
+    return schema ? schema.parse(await response.json()) : undefined
+  }) as ApiMethod
 
-async function internalJson<T>(
-  path: string,
-  includeOrganization: boolean,
-  init: InternalRequestInit = {},
-): Promise<T> {
-  const res = await internalFetch(path, includeOrganization, init)
-  if (!res.ok) {
-    const text = await res.text()
-    const parsedResult = text ? parseApiErrorPayload(text) : null
-    const parsed = parsedResult?.parsed
-    let message =
-      parsedResult?.message ??
-      (text || res.statusText || 'An unexpected server error occurred.')
-    if (res.status === 401) {
-      message = 'Session expired. Please reconnect.'
-    }
-    throw new ApiError(res.status, message, parsed)
-  }
-  return res.json() as Promise<T>
-}
-
-export function apiFetch(
-  path: string,
-  init?: Omit<RequestInit, 'body'> & { body?: ApiRequestBody },
-): Promise<Response> {
-  return internalFetch(path, true, init)
-}
-
-export function apiFetchWithoutOrganization(
-  path: string,
-  init?: Omit<RequestInit, 'body'> & { body?: ApiRequestBody },
-): Promise<Response> {
-  return internalFetch(path, false, init)
-}
-
-export function apiJson<T>(
-  path: string,
-  init?: Omit<RequestInit, 'body'> & { body?: ApiRequestBody },
-): Promise<T> {
-  return internalJson<T>(path, true, init)
-}
-
-export function apiJsonWithoutOrganization<T>(
-  path: string,
-  init?: Omit<RequestInit, 'body'> & { body?: ApiRequestBody },
-): Promise<T> {
-  return internalJson<T>(path, false, init)
+export const api = {
+  get: createMethod("GET"),
+  post: createMethod("POST"),
+  put: createMethod("PUT"),
+  patch: createMethod("PATCH"),
+  delete: createMethod("DELETE"),
 }
