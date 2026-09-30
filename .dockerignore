@@ -28,9 +28,10 @@ build
 *~
 .DS_Store
 
-# Git
+# Git (.gitignore stays in the context: Tailwind skips the paths it lists when
+# scanning for classes, dist/ included. Without it, the server build scans the
+# client output and hashes a different CSS than the one the shell links to.)
 .git
-.gitignore
 .gitattributes
 
 # CI/CD

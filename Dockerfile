@@ -40,8 +40,9 @@ FROM nginx:1.30.5-alpine
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy the static SPA from the builder stage: dist/client holds the assets and
+# the prerendered _shell.html (dist/server only served the prerender)
+COPY --from=builder /app/dist/client /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
