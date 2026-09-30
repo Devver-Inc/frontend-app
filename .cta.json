@@ -3,9 +3,10 @@
   "mode": "file-router",
   "typescript": true,
   "tailwind": true,
-  "packageManager": "npm",
+  "packageManager": "pnpm",
   "git": true,
   "version": 1,
-  "framework": "react-cra",
-  "chosenAddOns": ["eslint", "form", "tanstack-query", "shadcn"]
+  "framework": "react",
+  "routerOnly": false,
+  "chosenAddOns": ["eslint", "tanstack-query", "shadcn"]
 }

@@ -3,11 +3,17 @@ node_modules
 dist
 dist-ssr
 *.local
-count.txt
-.env
-.env.production
-.env.local
-.nitro
+.env*
+!.env.example
 .tanstack
+.nitro
+.output
+.vinxi
+.wrangler
+__unconfig*
+count.txt
 .vscode
 .cursorrules
+
+# typescript
+*.tsbuildinfo

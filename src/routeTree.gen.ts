@@ -9,244 +9,360 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as OverlayAuthRouteImport } from './routes/overlay-auth'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
-import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
+import { Route as ProtectedDashboardRouteRouteImport } from './routes/_protected/_dashboard/route'
 import { Route as CallbackIndexRouteImport } from './routes/callback/index'
-import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projectId'
-import { Route as OrganizationsNewRouteImport } from './routes/organizations/new'
-import { Route as OrganizationSettingsRouteImport } from './routes/organization/settings'
-import { Route as OrganizationMembersRouteImport } from './routes/organization/members'
-import { Route as InvitationsJoinRouteImport } from './routes/invitations/join'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as OverlayAuthIndexRouteImport } from './routes/overlay-auth/index'
+import { Route as ProtectedDashboardIndexRouteImport } from './routes/_protected/_dashboard/index'
+import { Route as ProtectedDashboardSplatRouteImport } from './routes/_protected/_dashboard/$'
+import { Route as ProtectedDashboardProfileIndexRouteImport } from './routes/_protected/_dashboard/profile/index'
+import { Route as ProtectedDashboardProjectsIndexRouteImport } from './routes/_protected/_dashboard/projects/index'
+import { Route as ProtectedInvitationsJoinIndexRouteImport } from './routes/_protected/invitations/join/index'
+import { Route as ProtectedDashboardOrganizationMembersIndexRouteImport } from './routes/_protected/_dashboard/organization/members/index'
+import { Route as ProtectedDashboardOrganizationSettingsIndexRouteImport } from './routes/_protected/_dashboard/organization/settings/index'
+import { Route as ProtectedDashboardOrganizationsNewIndexRouteImport } from './routes/_protected/_dashboard/organizations/new/index'
+import { Route as ProtectedDashboardProjectsProjectIdIndexRouteImport } from './routes/_protected/_dashboard/projects/$projectId/index'
 
-const OverlayAuthRoute = OverlayAuthRouteImport.update({
-  id: '/overlay-auth',
-  path: '/overlay-auth',
+const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
+  id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
-  id: '/projects/',
-  path: '/projects/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => rootRouteImport,
+const ProtectedDashboardRouteRoute = ProtectedDashboardRouteRouteImport.update({
+  id: '/_dashboard',
+  getParentRoute: () => ProtectedRouteRoute,
 } as any)
 const CallbackIndexRoute = CallbackIndexRouteImport.update({
   id: '/callback/',
   path: '/callback/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: '/projects/$projectId',
-  path: '/projects/$projectId',
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrganizationsNewRoute = OrganizationsNewRouteImport.update({
-  id: '/organizations/new',
-  path: '/organizations/new',
+const OverlayAuthIndexRoute = OverlayAuthIndexRouteImport.update({
+  id: '/overlay-auth/',
+  path: '/overlay-auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrganizationSettingsRoute = OrganizationSettingsRouteImport.update({
-  id: '/organization/settings',
-  path: '/organization/settings',
-  getParentRoute: () => rootRouteImport,
+const ProtectedDashboardIndexRoute = ProtectedDashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedDashboardRouteRoute,
 } as any)
-const OrganizationMembersRoute = OrganizationMembersRouteImport.update({
-  id: '/organization/members',
-  path: '/organization/members',
-  getParentRoute: () => rootRouteImport,
+const ProtectedDashboardSplatRoute = ProtectedDashboardSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => ProtectedDashboardRouteRoute,
 } as any)
-const InvitationsJoinRoute = InvitationsJoinRouteImport.update({
-  id: '/invitations/join',
-  path: '/invitations/join',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const ProtectedDashboardProfileIndexRoute =
+  ProtectedDashboardProfileIndexRouteImport.update({
+    id: '/profile/',
+    path: '/profile/',
+    getParentRoute: () => ProtectedDashboardRouteRoute,
+  } as any)
+const ProtectedDashboardProjectsIndexRoute =
+  ProtectedDashboardProjectsIndexRouteImport.update({
+    id: '/projects/',
+    path: '/projects/',
+    getParentRoute: () => ProtectedDashboardRouteRoute,
+  } as any)
+const ProtectedInvitationsJoinIndexRoute =
+  ProtectedInvitationsJoinIndexRouteImport.update({
+    id: '/invitations/join/',
+    path: '/invitations/join/',
+    getParentRoute: () => ProtectedRouteRoute,
+  } as any)
+const ProtectedDashboardOrganizationMembersIndexRoute =
+  ProtectedDashboardOrganizationMembersIndexRouteImport.update({
+    id: '/organization/members/',
+    path: '/organization/members/',
+    getParentRoute: () => ProtectedDashboardRouteRoute,
+  } as any)
+const ProtectedDashboardOrganizationSettingsIndexRoute =
+  ProtectedDashboardOrganizationSettingsIndexRouteImport.update({
+    id: '/organization/settings/',
+    path: '/organization/settings/',
+    getParentRoute: () => ProtectedDashboardRouteRoute,
+  } as any)
+const ProtectedDashboardOrganizationsNewIndexRoute =
+  ProtectedDashboardOrganizationsNewIndexRouteImport.update({
+    id: '/organizations/new/',
+    path: '/organizations/new/',
+    getParentRoute: () => ProtectedDashboardRouteRoute,
+  } as any)
+const ProtectedDashboardProjectsProjectIdIndexRoute =
+  ProtectedDashboardProjectsProjectIdIndexRouteImport.update({
+    id: '/projects/$projectId/',
+    path: '/projects/$projectId/',
+    getParentRoute: () => ProtectedDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/overlay-auth': typeof OverlayAuthRoute
-  '/invitations/join': typeof InvitationsJoinRoute
-  '/organization/members': typeof OrganizationMembersRoute
-  '/organization/settings': typeof OrganizationSettingsRoute
-  '/organizations/new': typeof OrganizationsNewRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/callback': typeof CallbackIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/projects': typeof ProjectsIndexRoute
+  '/': typeof ProtectedDashboardIndexRoute
+  '/callback/': typeof CallbackIndexRoute
+  '/login/': typeof LoginIndexRoute
+  '/overlay-auth/': typeof OverlayAuthIndexRoute
+  '/$': typeof ProtectedDashboardSplatRoute
+  '/profile/': typeof ProtectedDashboardProfileIndexRoute
+  '/projects/': typeof ProtectedDashboardProjectsIndexRoute
+  '/invitations/join/': typeof ProtectedInvitationsJoinIndexRoute
+  '/organization/members/': typeof ProtectedDashboardOrganizationMembersIndexRoute
+  '/organization/settings/': typeof ProtectedDashboardOrganizationSettingsIndexRoute
+  '/organizations/new/': typeof ProtectedDashboardOrganizationsNewIndexRoute
+  '/projects/$projectId/': typeof ProtectedDashboardProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/overlay-auth': typeof OverlayAuthRoute
-  '/invitations/join': typeof InvitationsJoinRoute
-  '/organization/members': typeof OrganizationMembersRoute
-  '/organization/settings': typeof OrganizationSettingsRoute
-  '/organizations/new': typeof OrganizationsNewRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/': typeof ProtectedDashboardIndexRoute
   '/callback': typeof CallbackIndexRoute
-  '/profile': typeof ProfileIndexRoute
-  '/projects': typeof ProjectsIndexRoute
+  '/login': typeof LoginIndexRoute
+  '/overlay-auth': typeof OverlayAuthIndexRoute
+  '/$': typeof ProtectedDashboardSplatRoute
+  '/profile': typeof ProtectedDashboardProfileIndexRoute
+  '/projects': typeof ProtectedDashboardProjectsIndexRoute
+  '/invitations/join': typeof ProtectedInvitationsJoinIndexRoute
+  '/organization/members': typeof ProtectedDashboardOrganizationMembersIndexRoute
+  '/organization/settings': typeof ProtectedDashboardOrganizationSettingsIndexRoute
+  '/organizations/new': typeof ProtectedDashboardOrganizationsNewIndexRoute
+  '/projects/$projectId': typeof ProtectedDashboardProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/overlay-auth': typeof OverlayAuthRoute
-  '/invitations/join': typeof InvitationsJoinRoute
-  '/organization/members': typeof OrganizationMembersRoute
-  '/organization/settings': typeof OrganizationSettingsRoute
-  '/organizations/new': typeof OrganizationsNewRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/_protected': typeof ProtectedRouteRouteWithChildren
+  '/_protected/_dashboard': typeof ProtectedDashboardRouteRouteWithChildren
   '/callback/': typeof CallbackIndexRoute
-  '/profile/': typeof ProfileIndexRoute
-  '/projects/': typeof ProjectsIndexRoute
+  '/login/': typeof LoginIndexRoute
+  '/overlay-auth/': typeof OverlayAuthIndexRoute
+  '/_protected/_dashboard/$': typeof ProtectedDashboardSplatRoute
+  '/_protected/_dashboard/': typeof ProtectedDashboardIndexRoute
+  '/_protected/_dashboard/profile/': typeof ProtectedDashboardProfileIndexRoute
+  '/_protected/_dashboard/projects/': typeof ProtectedDashboardProjectsIndexRoute
+  '/_protected/invitations/join/': typeof ProtectedInvitationsJoinIndexRoute
+  '/_protected/_dashboard/organization/members/': typeof ProtectedDashboardOrganizationMembersIndexRoute
+  '/_protected/_dashboard/organization/settings/': typeof ProtectedDashboardOrganizationSettingsIndexRoute
+  '/_protected/_dashboard/organizations/new/': typeof ProtectedDashboardOrganizationsNewIndexRoute
+  '/_protected/_dashboard/projects/$projectId/': typeof ProtectedDashboardProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/overlay-auth'
-    | '/invitations/join'
-    | '/organization/members'
-    | '/organization/settings'
-    | '/organizations/new'
-    | '/projects/$projectId'
-    | '/callback'
-    | '/profile'
-    | '/projects'
+    | '/callback/'
+    | '/login/'
+    | '/overlay-auth/'
+    | '/$'
+    | '/profile/'
+    | '/projects/'
+    | '/invitations/join/'
+    | '/organization/members/'
+    | '/organization/settings/'
+    | '/organizations/new/'
+    | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/overlay-auth'
-    | '/invitations/join'
-    | '/organization/members'
-    | '/organization/settings'
-    | '/organizations/new'
-    | '/projects/$projectId'
     | '/callback'
+    | '/login'
+    | '/overlay-auth'
+    | '/$'
     | '/profile'
     | '/projects'
-  id:
-    | '__root__'
-    | '/'
-    | '/overlay-auth'
     | '/invitations/join'
     | '/organization/members'
     | '/organization/settings'
     | '/organizations/new'
     | '/projects/$projectId'
+  id:
+    | '__root__'
+    | '/_protected'
+    | '/_protected/_dashboard'
     | '/callback/'
-    | '/profile/'
-    | '/projects/'
+    | '/login/'
+    | '/overlay-auth/'
+    | '/_protected/_dashboard/$'
+    | '/_protected/_dashboard/'
+    | '/_protected/_dashboard/profile/'
+    | '/_protected/_dashboard/projects/'
+    | '/_protected/invitations/join/'
+    | '/_protected/_dashboard/organization/members/'
+    | '/_protected/_dashboard/organization/settings/'
+    | '/_protected/_dashboard/organizations/new/'
+    | '/_protected/_dashboard/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  OverlayAuthRoute: typeof OverlayAuthRoute
-  InvitationsJoinRoute: typeof InvitationsJoinRoute
-  OrganizationMembersRoute: typeof OrganizationMembersRoute
-  OrganizationSettingsRoute: typeof OrganizationSettingsRoute
-  OrganizationsNewRoute: typeof OrganizationsNewRoute
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
   CallbackIndexRoute: typeof CallbackIndexRoute
-  ProfileIndexRoute: typeof ProfileIndexRoute
-  ProjectsIndexRoute: typeof ProjectsIndexRoute
+  LoginIndexRoute: typeof LoginIndexRoute
+  OverlayAuthIndexRoute: typeof OverlayAuthIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/overlay-auth': {
-      id: '/overlay-auth'
-      path: '/overlay-auth'
-      fullPath: '/overlay-auth'
-      preLoaderRoute: typeof OverlayAuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
+    '/_protected': {
+      id: '/_protected'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof ProtectedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/': {
-      id: '/projects/'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile/': {
-      id: '/profile/'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_protected/_dashboard': {
+      id: '/_protected/_dashboard'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedDashboardRouteRouteImport
+      parentRoute: typeof ProtectedRouteRoute
     }
     '/callback/': {
       id: '/callback/'
       path: '/callback'
-      fullPath: '/callback'
+      fullPath: '/callback/'
       preLoaderRoute: typeof CallbackIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId': {
-      id: '/projects/$projectId'
-      path: '/projects/$projectId'
-      fullPath: '/projects/$projectId'
-      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+    '/login/': {
+      id: '/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/organizations/new': {
-      id: '/organizations/new'
-      path: '/organizations/new'
-      fullPath: '/organizations/new'
-      preLoaderRoute: typeof OrganizationsNewRouteImport
+    '/overlay-auth/': {
+      id: '/overlay-auth/'
+      path: '/overlay-auth'
+      fullPath: '/overlay-auth/'
+      preLoaderRoute: typeof OverlayAuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/organization/settings': {
-      id: '/organization/settings'
-      path: '/organization/settings'
-      fullPath: '/organization/settings'
-      preLoaderRoute: typeof OrganizationSettingsRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_protected/_dashboard/': {
+      id: '/_protected/_dashboard/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedDashboardIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
     }
-    '/organization/members': {
-      id: '/organization/members'
-      path: '/organization/members'
-      fullPath: '/organization/members'
-      preLoaderRoute: typeof OrganizationMembersRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_protected/_dashboard/$': {
+      id: '/_protected/_dashboard/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof ProtectedDashboardSplatRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
     }
-    '/invitations/join': {
-      id: '/invitations/join'
+    '/_protected/_dashboard/profile/': {
+      id: '/_protected/_dashboard/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProtectedDashboardProfileIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
+    }
+    '/_protected/_dashboard/projects/': {
+      id: '/_protected/_dashboard/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProtectedDashboardProjectsIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
+    }
+    '/_protected/invitations/join/': {
+      id: '/_protected/invitations/join/'
       path: '/invitations/join'
-      fullPath: '/invitations/join'
-      preLoaderRoute: typeof InvitationsJoinRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/invitations/join/'
+      preLoaderRoute: typeof ProtectedInvitationsJoinIndexRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/_dashboard/organization/members/': {
+      id: '/_protected/_dashboard/organization/members/'
+      path: '/organization/members'
+      fullPath: '/organization/members/'
+      preLoaderRoute: typeof ProtectedDashboardOrganizationMembersIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
+    }
+    '/_protected/_dashboard/organization/settings/': {
+      id: '/_protected/_dashboard/organization/settings/'
+      path: '/organization/settings'
+      fullPath: '/organization/settings/'
+      preLoaderRoute: typeof ProtectedDashboardOrganizationSettingsIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
+    }
+    '/_protected/_dashboard/organizations/new/': {
+      id: '/_protected/_dashboard/organizations/new/'
+      path: '/organizations/new'
+      fullPath: '/organizations/new/'
+      preLoaderRoute: typeof ProtectedDashboardOrganizationsNewIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
+    }
+    '/_protected/_dashboard/projects/$projectId/': {
+      id: '/_protected/_dashboard/projects/$projectId/'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId/'
+      preLoaderRoute: typeof ProtectedDashboardProjectsProjectIdIndexRouteImport
+      parentRoute: typeof ProtectedDashboardRouteRoute
     }
   }
 }
 
+interface ProtectedDashboardRouteRouteChildren {
+  ProtectedDashboardSplatRoute: typeof ProtectedDashboardSplatRoute
+  ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
+  ProtectedDashboardProfileIndexRoute: typeof ProtectedDashboardProfileIndexRoute
+  ProtectedDashboardProjectsIndexRoute: typeof ProtectedDashboardProjectsIndexRoute
+  ProtectedDashboardOrganizationMembersIndexRoute: typeof ProtectedDashboardOrganizationMembersIndexRoute
+  ProtectedDashboardOrganizationSettingsIndexRoute: typeof ProtectedDashboardOrganizationSettingsIndexRoute
+  ProtectedDashboardOrganizationsNewIndexRoute: typeof ProtectedDashboardOrganizationsNewIndexRoute
+  ProtectedDashboardProjectsProjectIdIndexRoute: typeof ProtectedDashboardProjectsProjectIdIndexRoute
+}
+
+const ProtectedDashboardRouteRouteChildren: ProtectedDashboardRouteRouteChildren =
+  {
+    ProtectedDashboardSplatRoute: ProtectedDashboardSplatRoute,
+    ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
+    ProtectedDashboardProfileIndexRoute: ProtectedDashboardProfileIndexRoute,
+    ProtectedDashboardProjectsIndexRoute: ProtectedDashboardProjectsIndexRoute,
+    ProtectedDashboardOrganizationMembersIndexRoute:
+      ProtectedDashboardOrganizationMembersIndexRoute,
+    ProtectedDashboardOrganizationSettingsIndexRoute:
+      ProtectedDashboardOrganizationSettingsIndexRoute,
+    ProtectedDashboardOrganizationsNewIndexRoute:
+      ProtectedDashboardOrganizationsNewIndexRoute,
+    ProtectedDashboardProjectsProjectIdIndexRoute:
+      ProtectedDashboardProjectsProjectIdIndexRoute,
+  }
+
+const ProtectedDashboardRouteRouteWithChildren =
+  ProtectedDashboardRouteRoute._addFileChildren(
+    ProtectedDashboardRouteRouteChildren,
+  )
+
+interface ProtectedRouteRouteChildren {
+  ProtectedDashboardRouteRoute: typeof ProtectedDashboardRouteRouteWithChildren
+  ProtectedInvitationsJoinIndexRoute: typeof ProtectedInvitationsJoinIndexRoute
+}
+
+const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
+  ProtectedDashboardRouteRoute: ProtectedDashboardRouteRouteWithChildren,
+  ProtectedInvitationsJoinIndexRoute: ProtectedInvitationsJoinIndexRoute,
+}
+
+const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
+  ProtectedRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  OverlayAuthRoute: OverlayAuthRoute,
-  InvitationsJoinRoute: InvitationsJoinRoute,
-  OrganizationMembersRoute: OrganizationMembersRoute,
-  OrganizationSettingsRoute: OrganizationSettingsRoute,
-  OrganizationsNewRoute: OrganizationsNewRoute,
-  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
   CallbackIndexRoute: CallbackIndexRoute,
-  ProfileIndexRoute: ProfileIndexRoute,
-  ProjectsIndexRoute: ProjectsIndexRoute,
+  LoginIndexRoute: LoginIndexRoute,
+  OverlayAuthIndexRoute: OverlayAuthIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

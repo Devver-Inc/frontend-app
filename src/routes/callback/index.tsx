@@ -1,49 +1,43 @@
-import { useHandleSignInCallback } from '@logto/react'
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { LoaderCircle } from 'lucide-react'
+import { createFileRoute } from "@tanstack/react-router"
+import type { ErrorComponentProps } from "@tanstack/react-router"
+import { FullScreenLoader } from "@/components/common/full-screen-loader"
+import { AuthCallbackCard } from "@/features/auth/components/auth-callback-card"
+import { authKeys } from "@/features/auth/hooks/use-auth-user"
+import { getErrorMessage } from "@/lib/api/api-error"
 
-import { Button } from '@/components/ui/button'
-
-export const Route = createFileRoute('/callback/')({
-  component: CallbackRoute,
+// Logto redirect URI (VITE_LOGTO_CALLBACK_URI).
+export const Route = createFileRoute("/callback/")({
+  ssr: false,
+  beforeLoad: async ({ context }) => {
+    const url = window.location.href
+    if (!(await context.auth.isSignInCallback(url))) return
+    // Logto then navigates to the page that asked for the sign-in.
+    await context.auth.handleSignInCallback(url)
+    await context.queryClient.invalidateQueries({ queryKey: authKeys.all })
+  },
+  pendingComponent: FullScreenLoader,
+  pendingMs: 0,
+  pendingMinMs: 0,
+  errorComponent: CallbackError,
+  component: CallbackComplete,
 })
 
-function CallbackRoute() {
-  const { isLoading, error } = useHandleSignInCallback()
-
-  if (isLoading) {
-    return (
-      <div className="grid h-screen place-items-center">
-        <LoaderCircle size={36} className="animate-spin" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="grid h-screen place-items-center px-4">
-        <div className="page-shell max-w-md space-y-4 px-8 py-10 text-center">
-          <h1 className="text-lg font-semibold">Authentication failed</h1>
-          <p className="text-sm text-muted-foreground">{error.message}</p>
-          <Link to="/">
-            <Button>Return to Devver</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
+function CallbackComplete() {
   return (
-    <div className="grid h-screen place-items-center px-4">
-      <div className="page-shell max-w-md space-y-4 px-8 py-10 text-center">
-        <h1 className="text-lg font-semibold">Authentication complete</h1>
-        <p className="text-sm text-muted-foreground">
-          You can continue to Devver.
-        </p>
-        <Link to="/">
-          <Button>Continue</Button>
-        </Link>
-      </div>
-    </div>
+    <AuthCallbackCard
+      title="Authentication complete"
+      description="You can continue to Devver."
+      actionLabel="Continue"
+    />
+  )
+}
+
+function CallbackError({ error }: ErrorComponentProps) {
+  return (
+    <AuthCallbackCard
+      title="Authentication failed"
+      description={getErrorMessage(error)}
+      actionLabel="Return to Devver"
+    />
   )
 }
