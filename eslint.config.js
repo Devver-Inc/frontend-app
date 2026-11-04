@@ -52,6 +52,7 @@ export default [
       "eslint.config.js",
       ".prettierrc",
       "src/routeTree.gen.ts",
+      "demo/**",
       "src/components/ui/**",
     ],
   },
