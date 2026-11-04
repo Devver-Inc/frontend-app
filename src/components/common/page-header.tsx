@@ -1,33 +1,30 @@
-import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
 type PageHeaderProps = {
   title: string
-  description: string
-  icon: LucideIcon
+  description?: ReactNode
+  leading?: ReactNode
   actions?: ReactNode
 }
 
 export function PageHeader({
   title,
   description,
-  icon: Icon,
+  leading,
   actions,
 }: PageHeaderProps) {
   return (
-    <div className="flex items-center justify-between gap-4 pb-1">
-      <div className="flex items-center gap-3">
-        <div className="page-header-icon">
-          <Icon className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            {title}
-          </h1>
-          <p className="text-sm text-muted-foreground/90">{description}</p>
+    <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pb-6">
+      <div className="flex min-w-0 items-center gap-3">
+        {leading}
+        <div className="min-w-0">
+          <h1 className="truncate text-title">{title}</h1>
+          {description && (
+            <div className="mt-0.5 text-muted-foreground">{description}</div>
+          )}
         </div>
       </div>
-      {actions}
-    </div>
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+    </header>
   )
 }

@@ -1,5 +1,6 @@
 import type { z } from "zod"
 import type {
+  DATABASE_TYPES,
   createProjectSchema,
   overlayCommentPermissionSchema,
   projectSchema,
@@ -18,8 +19,14 @@ export type OverlayCommentPermission = z.infer<
 
 export type MachineConfiguration = Project["machineConfiguration"]
 
+export type DatabaseType = (typeof DATABASE_TYPES)[number]
+
+export type DatabaseConfiguration = Project["databaseConfigurations"][number]
+
 export type ProjectFilters = Pagination & {
   search?: string
+  sortBy?: "name" | "createdAt" | "updatedAt"
+  sortDirection?: "ASC" | "DESC"
 }
 
 export type CreateProjectValues = z.input<typeof createProjectSchema>
@@ -32,6 +39,7 @@ export type CreateProjectInput = {
   machineConfiguration: MachineConfiguration
   teamMemberIds: string[]
   overlayAccessControl: { commentPermission: OverlayCommentPermission }
+  databaseConfigurations?: CreateProjectValues["databaseConfigurations"]
 }
 
 export type UpdateProjectInput = {

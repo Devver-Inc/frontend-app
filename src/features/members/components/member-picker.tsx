@@ -1,14 +1,15 @@
+import { Check } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import type { User } from "@/features/users/types/user.types"
 import { cn } from "@/lib/utils/cn"
+import { getInitials } from "@/lib/utils/get-initials"
 
 type MemberPickerProps = {
   members: User[]
   selectedIds: string[]
   onChange: (selectedIds: string[]) => void
   emptyMessage: string
-  className: string
+  className?: string
 }
 
 export function MemberPicker({
@@ -30,34 +31,39 @@ export function MemberPicker({
     )
 
   return (
-    <div className={className}>
+    <div className={cn("space-y-1", className)}>
       {members.map((member) => {
         const isSelected = selectedIds.includes(member.id)
+        const name = member.name ?? member.email ?? "Unnamed member"
         return (
           <button
             key={member.id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => toggle(member.id)}
             className={cn(
-              "flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition",
-              isSelected
-                ? "border-primary/50 bg-primary/10"
-                : "border-border/60 hover:bg-accent/40"
+              "flex w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors duration-100 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              isSelected ? "bg-accent" : "hover:bg-accent"
             )}
           >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={member.avatarUrl ?? undefined} />
-              <AvatarFallback>
-                {member.name?.charAt(0).toUpperCase() ?? "?"}
+            <Avatar className="size-8">
+              <AvatarImage
+                src={member.avatarUrl ?? undefined}
+                className="object-cover"
+              />
+              <AvatarFallback className="text-xs font-medium">
+                {getInitials(name)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <p className="text-sm font-medium">
-                {member.name ?? "Unnamed User"}
-              </p>
-              <p className="text-xs text-muted-foreground">{member.id}</p>
-            </div>
-            {isSelected && <Badge>Selected</Badge>}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{name}</span>
+              {member.name && member.email && (
+                <span className="block truncate text-xs text-muted-foreground">
+                  {member.email}
+                </span>
+              )}
+            </span>
+            {isSelected && <Check className="size-4 shrink-0 text-primary" />}
           </button>
         )
       })}

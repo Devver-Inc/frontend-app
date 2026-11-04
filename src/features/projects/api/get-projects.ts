@@ -4,12 +4,12 @@ import { api } from "@/lib/api/client"
 
 export const getProjects = (
   organizationId: string,
-  { page, pageSize, search }: ProjectFilters,
+  { page, pageSize, search, sortBy, sortDirection }: ProjectFilters,
   signal?: AbortSignal
 ) =>
   api.get("/projects", {
     schema: projectListSchema,
-    query: { page, pageSize, search },
+    query: { page, pageSize, search, sortBy, sortDirection },
     organizationId,
     signal,
   })

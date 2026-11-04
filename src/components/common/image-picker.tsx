@@ -20,20 +20,22 @@ export function ImagePicker({
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div className="group relative">
-      <Avatar className="h-20 w-20 rounded-lg">
-        <AvatarImage src={imageUrl ?? undefined} />
-        <AvatarFallback className="rounded-lg bg-muted text-lg">
-          {fallback}
-        </AvatarFallback>
-      </Avatar>
+    <>
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
         aria-label={label}
+        className="group relative size-20 shrink-0 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <Camera className="h-5 w-5 text-white" />
+        <Avatar className="size-20 rounded-xl transition-transform duration-100 ease-out group-active:scale-[.97]">
+          <AvatarImage src={imageUrl ?? undefined} className="object-cover" />
+          <AvatarFallback className="rounded-xl bg-muted text-xl font-medium">
+            {fallback}
+          </AvatarFallback>
+        </Avatar>
+        <span className="absolute -right-1.5 -bottom-1.5 grid size-7 place-items-center rounded-full bg-foreground text-background ring-2 ring-background">
+          <Camera className="size-3.5" />
+        </span>
       </button>
       <input
         ref={inputRef}
@@ -47,6 +49,6 @@ export function ImagePicker({
           if (file) onSelect(file)
         }}
       />
-    </div>
+    </>
   )
 }

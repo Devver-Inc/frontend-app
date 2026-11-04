@@ -19,3 +19,6 @@ export const useProjects = (filters: ProjectFilters) => {
   const organizationId = useCurrentOrganizationId()
   return useQuery(projectsQueryOptions(organizationId, filters))
 }
+
+export const useRecentProjects = () =>
+  useProjects({ sortBy: "updatedAt", sortDirection: "DESC", pageSize: 6 })

@@ -26,8 +26,6 @@ const toFormValues = (project: Project): ProjectSettingsValues => ({
   commentPermission: project.overlayAccessControl.commentPermission,
 })
 
-// The configuration card and the save bar sit apart on the project page:
-// the page owns the form and hands it to both.
 export function useProjectSettingsForm(project: Project) {
   const updateProject = useUpdateProject(project.id)
   const savedValues = useMemo(() => toFormValues(project), [project])
@@ -59,7 +57,7 @@ export function useProjectSettingsForm(project: Project) {
           machineConfiguration: input.machineConfiguration,
           overlayAccessControl: { commentPermission: input.commentPermission },
         },
-        { onSuccess: () => toast.success("Project updated successfully.") }
+        { onSuccess: () => toast.success("Changes saved.") }
       ),
     (errors) => toast.error(getFirstErrorMessage(errors))
   )

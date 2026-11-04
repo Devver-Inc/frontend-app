@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAuthClient } from "@/features/auth/hooks/use-auth-client"
 import { acceptInvitation } from "@/features/invitations/api/accept-invitation"
+import { invitationKeys } from "@/features/invitations/api/invitation.keys"
 import type { Invitation } from "@/features/invitations/types/invitation.types"
 import { addUserOrganization } from "@/features/organizations/hooks/use-user-organizations"
 import { useOrganizationStore } from "@/stores/organization.store"
@@ -23,6 +24,7 @@ export const useAcceptInvitation = () => {
         name: invitation.organizationName,
       })
       setCurrentOrganizationId(invitation.organizationId)
+      void queryClient.invalidateQueries({ queryKey: invitationKeys.mine() })
     },
   })
 }

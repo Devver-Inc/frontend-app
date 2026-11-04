@@ -3,29 +3,27 @@ import { Plus } from "lucide-react"
 import { useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
+import { Field } from "@/components/common/field"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { MemberPicker } from "@/features/members/components/member-picker"
 import { useMembers } from "@/features/members/hooks/use-members"
 import { CommentPermissionRadios } from "@/features/projects/components/comment-permission-radios"
+import { DatabaseConfigFields } from "@/features/projects/components/database-config-fields"
+import { ResourceSlider } from "@/features/projects/components/resource-slider"
 import { useCreateProject } from "@/features/projects/hooks/use-create-project"
-import {
-  MACHINE_RESOURCE_MAX,
-  MACHINE_RESOURCE_MIN,
-  createProjectSchema,
-} from "@/features/projects/schemas/project.schema"
+import { createProjectSchema } from "@/features/projects/schemas/project.schema"
 import type { CreateProjectValues } from "@/features/projects/types/project.types"
 import { getFirstErrorMessage } from "@/lib/utils/form-errors"
 
@@ -35,9 +33,36 @@ const DEFAULT_VALUES: CreateProjectValues = {
   machineConfiguration: { cpuCores: 1, ram: 1 },
   teamMemberIds: [],
   commentPermission: "email_required",
+  databaseConfigurations: [],
 }
 
-export function CreateProjectDialog() {
+function FormGroup({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="space-y-3 border-t pt-5">
+      <div>
+        <h3 className="text-sm font-medium">{title}</h3>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+export function CreateProjectDialog({
+  size = "default",
+}: {
+  size?: "default" | "sm"
+}) {
   const [open, setOpen] = useState(false)
   const createProject = useCreateProject()
   const { data: members } = useMembers({ pageSize: 50 })
@@ -48,18 +73,19 @@ export function CreateProjectDialog() {
   const name = useWatch({ control: form.control, name: "name" })
 
   const onSubmit = form.handleSubmit(
-    ({ description, commentPermission, ...input }) =>
+    ({ description, commentPermission, databaseConfigurations, ...input }) =>
       createProject.mutate(
         {
           ...input,
           description: description || undefined,
           overlayAccessControl: { commentPermission },
+          ...(databaseConfigurations.length > 0 && { databaseConfigurations }),
         },
         {
           onSuccess: () => {
             setOpen(false)
             form.reset()
-            toast.success("Project created successfully.")
+            toast.success("Project created.")
           },
         }
       ),
@@ -67,116 +93,89 @@ export function CreateProjectDialog() {
   )
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          Create Project
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button size={size}>
+          <Plus />
+          Create project
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
-        <form onSubmit={onSubmit}>
-          <DialogHeader>
-            <DialogTitle>Create Project</DialogTitle>
-            <DialogDescription>
-              Create a new project in your organization.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4 space-y-4">
+      </SheetTrigger>
+      <SheetContent>
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+          <SheetHeader>
+            <SheetTitle>Create project</SheetTitle>
+            <SheetDescription>
+              It gets its own machine, repositories, and previews.
+            </SheetDescription>
+          </SheetHeader>
+          <SheetBody className="space-y-5">
             <Controller
               name="name"
               control={form.control}
               render={({ field }) => (
-                <div className="space-y-2">
-                  <Label htmlFor="project-name">Project Name *</Label>
+                <Field label="Name" htmlFor="project-name">
                   <Input
                     {...field}
                     id="project-name"
-                    placeholder="My Awesome Project"
+                    maxLength={128}
+                    autoComplete="off"
                     required
                   />
-                </div>
+                </Field>
               )}
             />
             <Controller
               name="description"
               control={form.control}
               render={({ field }) => (
-                <div className="space-y-2">
-                  <Label htmlFor="project-desc">Description</Label>
+                <Field label="Description" htmlFor="project-desc">
                   <Textarea
                     {...field}
                     id="project-desc"
-                    placeholder="What is this project about?"
-                    rows={3}
+                    maxLength={256}
+                    rows={2}
                   />
-                </div>
+                </Field>
               )}
             />
-            <div className="space-y-2">
-              <Label>Machine configuration</Label>
-              <div className="space-y-4 rounded-md border border-border/60 p-3">
-                <Controller
-                  name="machineConfiguration.cpuCores"
-                  control={form.control}
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="project-cpu">CPU Cores</Label>
-                        <span className="text-xs text-muted-foreground">
-                          {field.value.toFixed(1)}
-                        </span>
-                      </div>
-                      <Slider
-                        id="project-cpu"
-                        min={MACHINE_RESOURCE_MIN}
-                        max={MACHINE_RESOURCE_MAX}
-                        step={0.1}
-                        value={[field.value]}
-                        onValueChange={([value]) => field.onChange(value)}
-                      />
-                    </div>
-                  )}
-                />
-                <Controller
-                  name="machineConfiguration.ram"
-                  control={form.control}
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="project-ram">RAM (GB)</Label>
-                        <span className="text-xs text-muted-foreground">
-                          {field.value.toFixed(1)}
-                        </span>
-                      </div>
-                      <Slider
-                        id="project-ram"
-                        min={MACHINE_RESOURCE_MIN}
-                        max={MACHINE_RESOURCE_MAX}
-                        step={0.1}
-                        value={[field.value]}
-                        onValueChange={([value]) => field.onChange(value)}
-                      />
-                    </div>
-                  )}
-                />
-                <div className="space-y-2">
-                  <Label htmlFor="project-storage-future">Storage (GB)</Label>
-                  <Input
-                    id="project-storage-future"
-                    value="Coming soon"
-                    disabled
-                    readOnly
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Storage configuration will be available in a future release.
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label>Assign team members</Label>
+            <FormGroup title="Machine">
+              <Controller
+                name="machineConfiguration.cpuCores"
+                control={form.control}
+                render={({ field }) => (
+                  <ResourceSlider
+                    id="project-cpu"
+                    label="CPU"
+                    unit="cores"
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+              <Controller
+                name="machineConfiguration.ram"
+                control={form.control}
+                render={({ field }) => (
+                  <ResourceSlider
+                    id="project-ram"
+                    label="Memory"
+                    unit="GB"
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup
+              title="Databases"
+              description="Available to every deployment. You can't add one later."
+            >
+              <DatabaseConfigFields control={form.control} />
+            </FormGroup>
+
+            <FormGroup title="Team">
               <Controller
                 name="teamMemberIds"
                 control={form.control}
@@ -185,26 +184,27 @@ export function CreateProjectDialog() {
                     members={members?.data ?? []}
                     selectedIds={field.value}
                     onChange={field.onChange}
-                    emptyMessage="No organization members available."
-                    className="max-h-56 space-y-2 overflow-y-auto rounded-md border border-border/60 p-2"
+                    emptyMessage="Invite people to your organization to add them here."
+                    className="max-h-56 overflow-y-auto"
                   />
                 )}
               />
-            </div>
+            </FormGroup>
 
-            <Controller
-              name="commentPermission"
-              control={form.control}
-              render={({ field }) => (
-                <CommentPermissionRadios
-                  value={field.value}
-                  onChange={field.onChange}
-                  groupClassName="rounded-md border border-border/60 p-3"
-                />
-              )}
-            />
-          </div>
-          <DialogFooter className="mt-6">
+            <FormGroup title="Comments on previews">
+              <Controller
+                name="commentPermission"
+                control={form.control}
+                render={({ field }) => (
+                  <CommentPermissionRadios
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FormGroup>
+          </SheetBody>
+          <SheetFooter>
             <Button
               type="button"
               variant="outline"
@@ -216,11 +216,11 @@ export function CreateProjectDialog() {
               type="submit"
               disabled={createProject.isPending || !name.trim()}
             >
-              {createProject.isPending ? "Creating..." : "Create Project"}
+              {createProject.isPending ? "Creating…" : "Create project"}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

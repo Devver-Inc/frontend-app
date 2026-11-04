@@ -4,12 +4,12 @@ import { api } from "@/lib/api/client"
 
 export const getMembers = (
   organizationId: string,
-  { page, pageSize, search }: MemberFilters,
+  { page, pageSize, search, rolesFilter }: MemberFilters,
   signal?: AbortSignal
 ) =>
   api.get("/organizations/members", {
     schema: memberListSchema,
-    query: { page, pageSize, search },
+    query: { page, pageSize, search, rolesFilter },
     organizationId,
     signal,
   })

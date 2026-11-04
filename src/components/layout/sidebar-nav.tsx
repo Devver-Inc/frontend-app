@@ -1,33 +1,81 @@
 import { Link, useRouterState } from "@tanstack/react-router"
 import {
-  Building2,
-  ChevronDown,
-  Code2,
-  FileText,
-  FolderKanban,
-  Home,
-  Settings,
+  ArrowUpRight,
+  FolderGit2,
+  LayoutGrid,
+  Settings2,
   Users,
 } from "lucide-react"
-import { useState } from "react"
+import type { LucideIcon } from "lucide-react"
+import { motion } from "motion/react"
+import { useId } from "react"
 import { ThemeToggle } from "@/components/common/theme-toggle"
-import { Button } from "@/components/ui/button"
+import { spring } from "@/lib/motion"
 import { cn } from "@/lib/utils/cn"
 
 const MAIN_NAV = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
+  { to: "/", label: "Home", icon: LayoutGrid },
+  { to: "/projects", label: "Projects", icon: FolderGit2 },
 ] as const
 
 const ORGANIZATION_NAV = [
-  { to: "/organization/settings", label: "Settings", icon: Settings },
   { to: "/organization/members", label: "Members", icon: Users },
+  { to: "/organization/settings", label: "Settings", icon: Settings2 },
 ] as const
 
 const EXTERNAL_LINKS = [
-  { href: "https://docs.devver.app", label: "Docs", icon: FileText },
-  { href: "https://github.com/Devver-Inc", label: "Github", icon: Code2 },
+  { href: "https://docs.devver.app", label: "Docs" },
+  { href: "https://github.com/Devver-Inc", label: "GitHub" },
 ] as const
+
+const isActive = (pathname: string, to: string) =>
+  to === "/" ? pathname === "/" : pathname.startsWith(to)
+
+type NavItemProps = {
+  to: (typeof MAIN_NAV)[number]["to"] | (typeof ORGANIZATION_NAV)[number]["to"]
+  label: string
+  icon: LucideIcon
+  pathname: string
+  indicatorId: string
+  onNavigate: () => void
+}
+
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  pathname,
+  indicatorId,
+  onNavigate,
+}: NavItemProps) {
+  const isCurrent = isActive(pathname, to)
+
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      aria-current={isCurrent ? "page" : undefined}
+      className={cn(
+        "relative flex h-8 items-center gap-2.5 rounded-md px-2 font-medium transition-colors duration-100 outline-none hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-inset pointer-coarse:h-10",
+        isCurrent ? "text-sidebar-foreground" : "text-sidebar-muted"
+      )}
+    >
+      {isCurrent && (
+        <motion.span
+          layoutId={indicatorId}
+          transition={spring}
+          className="absolute inset-0 rounded-md bg-sidebar-accent"
+        />
+      )}
+      <Icon
+        className="relative size-4 shrink-0"
+        strokeWidth={1.75}
+        aria-hidden
+      />
+      <span className="relative">{label}</span>
+    </Link>
+  )
+}
 
 type SidebarNavProps = {
   onNavigate: () => void
@@ -37,100 +85,59 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
-  const isOnOrganizationPage = pathname.startsWith("/organization")
-
-  const [isOrganizationExpanded, setOrganizationExpanded] =
-    useState(isOnOrganizationPage)
-  const [wasOnOrganizationPage, setWasOnOrganizationPage] =
-    useState(isOnOrganizationPage)
-  // Opens the organization section when navigating into it, while leaving it
-  // collapsible by hand.
-  if (isOnOrganizationPage !== wasOnOrganizationPage) {
-    setWasOnOrganizationPage(isOnOrganizationPage)
-    if (isOnOrganizationPage) setOrganizationExpanded(true)
-  }
+  // The desktop rail and the mobile sheet must not share an animated indicator.
+  const indicatorId = useId()
 
   return (
-    <div className="flex flex-1 flex-col justify-between">
-      <nav className="space-y-1 px-3">
-        {MAIN_NAV.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-              pathname === item.to
-                ? "bg-sidebar-primary/16 text-sidebar-foreground shadow-sm ring-1 shadow-sidebar-primary/18 ring-sidebar-primary/22"
-                : "text-sidebar-foreground/72 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground"
-            )}
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Link>
-        ))}
-
-        <div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setOrganizationExpanded((isExpanded) => !isExpanded)}
-            className={cn(
-              "h-auto w-full justify-start gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
-              isOnOrganizationPage
-                ? "bg-sidebar-primary/16 text-sidebar-foreground shadow-sm ring-1 shadow-sidebar-primary/18 ring-sidebar-primary/22"
-                : "text-sidebar-foreground/72 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground"
-            )}
-          >
-            <Building2 className="h-4 w-4" />
-            <span className="flex-1 text-left">Organization</span>
-            <ChevronDown
-              className={cn(
-                "h-3.5 w-3.5 transition-transform",
-                isOrganizationExpanded && "rotate-180"
-              )}
+    <div className="flex min-h-0 flex-1 flex-col justify-between gap-6">
+      <nav
+        aria-label="Main"
+        className="min-h-0 space-y-5 overflow-y-auto overscroll-contain"
+      >
+        <div className="space-y-0.5">
+          {MAIN_NAV.map((item) => (
+            <NavItem
+              key={item.to}
+              {...item}
+              pathname={pathname}
+              indicatorId={indicatorId}
+              onNavigate={onNavigate}
             />
-          </Button>
+          ))}
+        </div>
 
-          {isOrganizationExpanded && (
-            <div className="mt-1 ml-4 space-y-1 border-l border-sidebar-border/80 pl-3">
-              {ORGANIZATION_NAV.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-all",
-                    pathname === item.to
-                      ? "bg-sidebar-accent font-medium text-sidebar-foreground"
-                      : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                  )}
-                >
-                  <item.icon className="h-3.5 w-3.5" />
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          )}
+        <div className="space-y-0.5">
+          <p className="px-2 pb-1.5 text-xs text-sidebar-muted">Organization</p>
+          {ORGANIZATION_NAV.map((item) => (
+            <NavItem
+              key={item.to}
+              {...item}
+              pathname={pathname}
+              indicatorId={indicatorId}
+              onNavigate={onNavigate}
+            />
+          ))}
         </div>
       </nav>
 
-      <div className="space-y-1 px-3 pb-2">
-        <div className="mb-2 border-t border-sidebar-border" />
+      {/* Wraps instead of overflowing when the text size goes up. */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <div className="flex gap-2.5 pl-2">
+          {EXTERNAL_LINKS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-0.5 rounded-sm text-xs text-sidebar-muted transition-colors duration-100 outline-none hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            >
+              {item.label}
+              <ArrowUpRight className="size-3" aria-hidden />
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
+          ))}
+        </div>
         <ThemeToggle />
-        {EXTERNAL_LINKS.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </a>
-        ))}
       </div>
     </div>
   )

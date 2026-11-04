@@ -1,52 +1,36 @@
-import { Moon, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { useIsDarkMode } from "@/hooks/use-is-dark-mode"
+import { Monitor, Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 import { usePreferencesStore } from "@/stores/preferences.store"
 
+const THEMES = [
+  { value: "light", label: "Light theme", icon: Sun },
+  { value: "dark", label: "Dark theme", icon: Moon },
+  { value: "system", label: "Match system theme", icon: Monitor },
+] as const
+
 export function ThemeToggle() {
-  const isDark = useIsDarkMode()
+  const theme = usePreferencesStore((state) => state.theme)
   const setTheme = usePreferencesStore((state) => state.setTheme)
 
   return (
-    <div className="flex w-fit items-center justify-center text-sm text-sidebar-foreground/70">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={!isDark}
-        aria-label="Switch to light mode"
-        onClick={() => setTheme("light")}
-        className={cn(
-          "cursor-pointer hover:bg-transparent",
-          isDark ? "text-sidebar-foreground/60" : "text-sidebar-foreground"
-        )}
-      >
-        <Sun className="h-4 w-4" aria-hidden />
-      </Button>
-
-      <Switch
-        className="cursor-pointer !bg-primary"
-        checked={isDark}
-        onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-        aria-label="Toggle theme"
-      />
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={isDark}
-        aria-label="Switch to dark mode"
-        onClick={() => setTheme("dark")}
-        className={cn(
-          "cursor-pointer hover:bg-transparent",
-          isDark ? "text-sidebar-foreground" : "text-sidebar-foreground/60"
-        )}
-      >
-        <Moon className="h-4 w-4" aria-hidden />
-      </Button>
+    <div role="group" aria-label="Theme" className="flex">
+      {THEMES.map(({ value, label, icon: Icon }) => (
+        <button
+          key={value}
+          type="button"
+          aria-label={label}
+          aria-pressed={theme === value}
+          onClick={() => setTheme(value)}
+          className={cn(
+            "grid size-6.5 cursor-pointer place-items-center rounded-md transition-colors duration-100 outline-none hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring active:scale-[.97]",
+            theme === value
+              ? "bg-sidebar-accent text-sidebar-foreground"
+              : "text-sidebar-muted"
+          )}
+        >
+          <Icon className="size-3.5" strokeWidth={1.75} />
+        </button>
+      ))}
     </div>
   )
 }

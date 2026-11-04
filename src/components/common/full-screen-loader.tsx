@@ -11,8 +11,17 @@ export function FullScreenLoader({
   iconClassName,
 }: FullScreenLoaderProps) {
   return (
-    <div className={cn("grid h-screen place-items-center", className)}>
-      <LoaderCircle size={36} className={cn("animate-spin", iconClassName)} />
+    <div
+      role="status"
+      aria-label="Loading"
+      className={cn("grid h-dvh place-items-center", className)}
+    >
+      <LoaderCircle
+        className={cn(
+          "size-6 animate-spin text-muted-foreground motion-reduce:animate-none",
+          iconClassName
+        )}
+      />
     </div>
   )
 }

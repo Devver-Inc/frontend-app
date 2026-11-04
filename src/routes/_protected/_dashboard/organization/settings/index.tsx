@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Settings } from "lucide-react"
 import { PageHeader } from "@/components/common/page-header"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DeleteOrganizationCard } from "@/features/organizations/components/delete-organization-card"
+import { DeleteOrganizationRow } from "@/features/organizations/components/delete-organization-row"
+import { OrganizationOwnershipRow } from "@/features/organizations/components/organization-ownership-row"
 import { OrganizationSettingsForm } from "@/features/organizations/components/organization-settings-form"
 import { SelectOrganizationNotice } from "@/features/organizations/components/select-organization-notice"
 import { useCurrentOrganizationId } from "@/features/organizations/hooks/use-current-organization-id"
 import { useOrganization } from "@/features/organizations/hooks/use-organization"
+import { useOrganizationGovernance } from "@/features/organizations/hooks/use-organization-governance"
 
 export const Route = createFileRoute(
   "/_protected/_dashboard/organization/settings/"
@@ -17,6 +18,7 @@ export const Route = createFileRoute(
 function OrganizationSettingsPage() {
   const currentOrganizationId = useCurrentOrganizationId()
   const { data: organization, isLoading } = useOrganization()
+  const { data: governance } = useOrganizationGovernance()
 
   if (!currentOrganizationId) {
     return (
@@ -27,19 +29,15 @@ function OrganizationSettingsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-9 w-64" />
         <Skeleton className="h-64 w-full" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Organization Settings"
-        description="Manage your organization details and preferences"
-        icon={Settings}
-      />
+    <>
+      <PageHeader title="Settings" />
       {organization && (
         <>
           {/* Keyed: switching organization starts from its saved values. */}
@@ -47,9 +45,10 @@ function OrganizationSettingsPage() {
             key={organization.id}
             organization={organization}
           />
-          <DeleteOrganizationCard organization={organization} />
+          {governance && <OrganizationOwnershipRow governance={governance} />}
+          <DeleteOrganizationRow organization={organization} />
         </>
       )}
-    </div>
+    </>
   )
 }

@@ -1,15 +1,6 @@
-import { XCircle } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { X } from "lucide-react"
+import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/common/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { useRevokeInvitation } from "@/features/invitations/hooks/use-revoke-invitation"
 import type { Invitation } from "@/features/invitations/types/invitation.types"
@@ -22,35 +13,24 @@ export function RevokeInvitationButton({
   const revokeInvitation = useRevokeInvitation()
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <ConfirmDialog
+      trigger={
         <Button
           variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive-foreground"
-          title="Revoke invitation"
+          size="icon-sm"
+          aria-label={`Revoke invitation for ${invitation.invitee}`}
         >
-          <XCircle className="h-4 w-4" />
+          <X />
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Revoke Invitation</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to revoke the invitation for{" "}
-            <span className="font-semibold">{invitation.invitee}</span>?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => revokeInvitation.mutate(invitation.id)}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Revoke
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      }
+      title="Revoke this invitation?"
+      description={`The link sent to ${invitation.invitee} stops working. You can invite them again later.`}
+      actionLabel="Revoke invitation"
+      onConfirm={() =>
+        revokeInvitation.mutate(invitation.id, {
+          onSuccess: () => toast.success("Invitation revoked."),
+        })
+      }
+    />
   )
 }

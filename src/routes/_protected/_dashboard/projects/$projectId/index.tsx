@@ -1,37 +1,55 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Settings2 } from "lucide-react"
+import { Rocket } from "lucide-react"
+import { useState } from "react"
+import { z } from "zod"
+import { Monogram } from "@/components/common/monogram"
 import { PageHeader } from "@/components/common/page-header"
-import { ProjectCommentsCard } from "@/features/comments/components/project-comments-card"
+import { Button } from "@/components/ui/button"
+import { ProjectCommentsTab } from "@/features/comments/components/project-comments-tab"
 import { projectCommentsQueryOptions } from "@/features/comments/hooks/use-project-comments"
-import { ArgoCdStatusBanner } from "@/features/deployments/components/argocd-status-banner"
-import { ProjectDeploymentsCard } from "@/features/deployments/components/project-deployments-card"
-import { ProjectRepositoriesCard } from "@/features/deployments/components/project-repositories-card"
+import { DeploySheet } from "@/features/deployments/components/deploy-sheet"
+import type { DeployPrefill } from "@/features/deployments/components/deploy-sheet"
+import { ProjectDatabasesTab } from "@/features/deployments/components/project-databases-tab"
+import { ProjectDeploymentsTab } from "@/features/deployments/components/project-deployments-tab"
+import { ProjectRepositoriesTab } from "@/features/deployments/components/project-repositories-tab"
+import { ProjectStatus } from "@/features/deployments/components/project-status"
 import { useArgoCdStatusStream } from "@/features/deployments/hooks/use-argocd-status-stream"
-import { projectReposQueryOptions } from "@/features/deployments/hooks/use-project-repos"
+import {
+  projectReposQueryOptions,
+  useProjectRepos,
+} from "@/features/deployments/hooks/use-project-repos"
 import { membersQueryOptions } from "@/features/members/hooks/use-members"
-import { DeleteProjectCard } from "@/features/projects/components/delete-project-card"
 import {
   ProjectDetailsSkeleton,
+  ProjectLoadError,
   ProjectNotFound,
 } from "@/features/projects/components/project-details-states"
-import { ProjectSettingsCard } from "@/features/projects/components/project-settings-card"
-import { ProjectSettingsSaveBar } from "@/features/projects/components/project-settings-save-bar"
-import { ProjectTeamCard } from "@/features/projects/components/project-team-card"
+import { ProjectSettingsTab } from "@/features/projects/components/project-settings-tab"
+import {
+  PROJECT_TABS,
+  ProjectTabs,
+} from "@/features/projects/components/project-tabs"
+import { ProjectTeamTab } from "@/features/projects/components/project-team-tab"
 import {
   projectQueryOptions,
   useProject,
 } from "@/features/projects/hooks/use-project"
-import { useProjectSettingsForm } from "@/features/projects/hooks/use-project-settings-form"
 import type { Project } from "@/features/projects/types/project.types"
+import { ApiError } from "@/lib/api/api-error"
 import { useOrganizationStore } from "@/stores/organization.store"
+
+const projectSearchSchema = z.object({
+  tab: z.enum(PROJECT_TABS).optional().catch(undefined),
+})
 
 const ignoreError = () => undefined
 
 export const Route = createFileRoute(
   "/_protected/_dashboard/projects/$projectId/"
 )({
-  // The cards only mount once the project is loaded: their data is requested
+  // The tabs only mount once the project is loaded: their data is requested
   // here, alongside the project, without waiting for it.
+  validateSearch: projectSearchSchema,
   loader: ({ context: { queryClient }, params: { projectId } }) => {
     const { currentOrganizationId } = useOrganizationStore.getState()
     if (!currentOrganizationId) return
@@ -57,13 +75,25 @@ export const Route = createFileRoute(
 
 function ProjectPage() {
   const { projectId } = Route.useParams()
-  const { data: project, isLoading } = useProject(projectId)
+  const { data: project, error, isLoading, refetch } = useProject(projectId)
   const argoCdStatus = useArgoCdStatusStream(projectId)
 
   if (isLoading) return <ProjectDetailsSkeleton />
-  if (!project) return <ProjectNotFound />
+  if (!project) {
+    const isMissing = error instanceof ApiError && error.isClientError
+    if (error && !isMissing) {
+      return <ProjectLoadError onRetry={() => void refetch()} />
+    }
+    return <ProjectNotFound />
+  }
 
-  return <ProjectDetails project={project} argoCdStatus={argoCdStatus} />
+  return (
+    <ProjectDetails
+      key={project.id}
+      project={project}
+      argoCdStatus={argoCdStatus}
+    />
+  )
 }
 
 type ProjectDetailsProps = {
@@ -72,29 +102,82 @@ type ProjectDetailsProps = {
 }
 
 function ProjectDetails({ project, argoCdStatus }: ProjectDetailsProps) {
-  const settings = useProjectSettingsForm(project)
+  const { tab = "deployments" } = Route.useSearch()
+  const { data: repos = [] } = useProjectRepos(project.id)
+  const [deployPanel, setDeployPanel] = useState<{
+    isOpen: boolean
+    prefill: DeployPrefill
+  }>({ isOpen: false, prefill: {} })
+
   const isPodReady = argoCdStatus.status?.podReady === true
+  const engines = project.databaseConfigurations
+    .filter(({ enabled }) => enabled)
+    .map(({ type }) => type)
+
+  const openDeployPanel = (prefill: DeployPrefill = {}) =>
+    setDeployPanel({ isOpen: true, prefill })
 
   return (
-    <div className="space-y-6">
+    <>
       <PageHeader
         title={project.name}
-        description="Configure resources, access and team members."
-        icon={Settings2}
+        leading={<Monogram name={project.name} size="lg" />}
+        description={
+          <ProjectStatus
+            status={argoCdStatus.status}
+            isConnected={argoCdStatus.isConnected}
+          />
+        }
+        actions={
+          <Button
+            disabled={!isPodReady || repos.length === 0}
+            onClick={() => openDeployPanel()}
+          >
+            <Rocket />
+            Deploy
+          </Button>
+        }
       />
-      <ArgoCdStatusBanner {...argoCdStatus} />
-      <ProjectSettingsCard project={project} control={settings.form.control} />
-      <ProjectTeamCard project={project} />
-      <ProjectCommentsCard projectId={project.id} />
-      <ProjectRepositoriesCard projectId={project.id} isPodReady={isPodReady} />
-      <ProjectDeploymentsCard projectId={project.id} isPodReady={isPodReady} />
-      {settings.isDirty && (
-        <ProjectSettingsSaveBar
-          isSaving={settings.isSaving}
-          onSave={() => void settings.save()}
+      <ProjectTabs projectId={project.id} current={tab} />
+
+      {tab === "deployments" && (
+        <ProjectDeploymentsTab
+          projectId={project.id}
+          isPodReady={isPodReady}
+          applications={argoCdStatus.status?.applications ?? []}
+          onDeploy={openDeployPanel}
         />
       )}
-      <DeleteProjectCard project={project} />
-    </div>
+      {tab === "repositories" && (
+        <ProjectRepositoriesTab
+          projectId={project.id}
+          isPodReady={isPodReady}
+        />
+      )}
+      {tab === "databases" && (
+        <ProjectDatabasesTab
+          projectId={project.id}
+          configurations={project.databaseConfigurations}
+          isPodReady={isPodReady}
+        />
+      )}
+      {tab === "comments" && <ProjectCommentsTab projectId={project.id} />}
+      {tab === "team" && <ProjectTeamTab project={project} />}
+      {tab === "settings" && (
+        <ProjectSettingsTab project={project} isPodReady={isPodReady} />
+      )}
+
+      <DeploySheet
+        projectId={project.id}
+        repos={repos}
+        engines={engines}
+        isPodReady={isPodReady}
+        isOpen={deployPanel.isOpen}
+        prefill={deployPanel.prefill}
+        onOpenChange={(isOpen) =>
+          setDeployPanel((panel) => ({ ...panel, isOpen }))
+        }
+      />
+    </>
   )
 }

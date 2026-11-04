@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useId, useState } from "react"
 import type { ReactNode } from "react"
 import {
   AlertDialog,
@@ -32,37 +32,37 @@ export function ConfirmByNameDialog({
   isPending,
   onConfirm,
 }: ConfirmByNameDialogProps) {
+  const inputId = useId()
   const [typedName, setTypedName] = useState("")
 
   return (
-    <AlertDialog>
+    <AlertDialog onOpenChange={() => setTypedName("")}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. Type{" "}
-            <span className="font-mono font-semibold text-foreground">
-              {name}
-            </span>{" "}
-            to confirm.
+            This can't be undone. Type{" "}
+            <span className="font-medium text-foreground">{name}</span> to
+            confirm.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Input
+          id={inputId}
+          aria-label={placeholder}
           value={typedName}
           onChange={(event) => setTypedName(event.target.value)}
           placeholder={placeholder}
+          autoComplete="off"
         />
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setTypedName("")}>
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             onClick={onConfirm}
             disabled={typedName !== name || isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isPending ? "Deleting..." : actionLabel}
+            {actionLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

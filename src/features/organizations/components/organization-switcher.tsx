@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { Monogram } from "@/components/common/monogram"
 import {
   Select,
   SelectContent,
@@ -31,24 +32,26 @@ export function OrganizationSwitcher() {
   }, [current, currentOrganizationId, setCurrentOrganizationId])
 
   if (isPending) {
-    return <Skeleton className="h-10 w-full rounded-xl" />
+    return <Skeleton className="h-9 w-full rounded-lg bg-sidebar-accent" />
   }
 
   return (
     <Select
-      value={current?.id}
+      value={current?.id ?? ""}
       onValueChange={setCurrentOrganizationId}
       disabled={organizations.length === 0}
     >
       <SelectTrigger
         id="org-switcher"
-        className="h-10 w-full rounded-xl border-sidebar-border/80 bg-sidebar-accent/65 text-sidebar-foreground shadow-md shadow-black/20 hover:bg-sidebar-accent/85 focus-visible:border-sidebar-ring focus-visible:ring-sidebar-ring/35"
+        aria-label="Organization"
+        className="w-full bg-transparent pl-1.5 font-medium text-sidebar-foreground shadow-[inset_0_0_0_1px_var(--sidebar-border)] transition-colors hover:bg-sidebar-accent focus-visible:shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring data-[placeholder]:text-sidebar-muted [&_svg:not([class*='text-'])]:text-sidebar-muted"
       >
         <SelectValue placeholder="No organization" />
       </SelectTrigger>
       <SelectContent>
         {organizations.map((organization) => (
           <SelectItem key={organization.id} value={organization.id}>
+            <Monogram name={organization.name} size="xs" />
             {organization.name}
           </SelectItem>
         ))}

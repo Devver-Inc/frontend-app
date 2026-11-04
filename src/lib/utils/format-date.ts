@@ -3,10 +3,17 @@ const HOUR_MS = 3_600_000
 const DAY_MS = 86_400_000
 
 export const formatDate = (value: string | number): string =>
-  new Date(value).toLocaleDateString()
+  new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })
 
 export const formatDateTime = (value: string | number): string =>
-  new Date(value).toLocaleString()
+  new Date(value).toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  })
 
 export const formatLongDate = (value: string | number): string =>
   new Date(value).toLocaleDateString("en-US", {
@@ -26,5 +33,5 @@ export const formatRelativeDate = (value: string): string => {
   if (minutes < 60) return `${minutes}m ago`
   if (hours < 24) return `${hours}h ago`
   if (days < 30) return `${days}d ago`
-  return date.toLocaleDateString()
+  return formatDate(value)
 }

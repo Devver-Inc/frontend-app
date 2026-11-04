@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Building2 } from "lucide-react"
 import { PageHeader } from "@/components/common/page-header"
 import { CreateOrganizationForm } from "@/features/organizations/components/create-organization-form"
 
@@ -9,11 +8,10 @@ export const Route = createFileRoute(
 
 function NewOrganizationPage() {
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 py-10">
+    <div className="max-w-md">
       <PageHeader
         title="Create an organization"
-        description="Give your organization a name, an optional description, and a logo."
-        icon={Building2}
+        description="It holds your projects and the people working on them."
       />
       <CreateOrganizationForm />
     </div>

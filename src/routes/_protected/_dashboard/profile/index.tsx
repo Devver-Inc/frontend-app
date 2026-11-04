@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { User } from "lucide-react"
 import { PageHeader } from "@/components/common/page-header"
-import { AccountCard } from "@/features/profile/components/account-card"
-import { PersonalInformationCard } from "@/features/profile/components/personal-information-card"
+import { AccountSection } from "@/features/profile/components/account-section"
+import { PersonalInformationForm } from "@/features/profile/components/personal-information-form"
 import { ProfileSkeleton } from "@/features/profile/components/profile-skeleton"
 import { useProfile } from "@/features/profile/hooks/use-profile"
 
@@ -16,14 +15,10 @@ function ProfilePage() {
   if (isPending) return <ProfileSkeleton />
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Profile"
-        description="Manage your personal information and account settings"
-        icon={User}
-      />
-      <PersonalInformationCard profile={profile} />
-      <AccountCard profile={profile} />
-    </div>
+    <>
+      <PageHeader title="Profile" />
+      <PersonalInformationForm profile={profile} />
+      <AccountSection profile={profile} />
+    </>
   )
 }

@@ -6,4 +6,5 @@ export type OrganizationRole = z.infer<typeof organizationRoleSchema>
 
 export type MemberFilters = Pagination & {
   search?: string
+  rolesFilter?: "admin" | "developer" | "viewer"
 }

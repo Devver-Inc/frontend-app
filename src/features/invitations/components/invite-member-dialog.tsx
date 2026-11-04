@@ -3,6 +3,7 @@ import { UserPlus } from "lucide-react"
 import { useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
+import { Field } from "@/components/common/field"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,7 +15,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -26,14 +26,13 @@ import { useCreateInvitation } from "@/features/invitations/hooks/use-create-inv
 import { inviteMemberSchema } from "@/features/invitations/schemas/invitation.schema"
 import { useOrganizationRoles } from "@/features/members/hooks/use-organization-roles"
 import { capitalize } from "@/lib/utils/capitalize"
-import { getFirstErrorMessage } from "@/lib/utils/form-errors"
 
 const DEFAULT_ROLE_NAME = "developer"
 
 const ROLE_DESCRIPTIONS: Record<string, string | undefined> = {
-  admin: "Full access to all organization resources",
-  developer: "Can deploy and manage assigned projects",
-  viewer: "Read-only access to assigned projects",
+  admin: "Manages the organization, its members, and every project.",
+  developer: "Deploys and manages the projects they're assigned to.",
+  viewer: "Reads the projects they're assigned to.",
 }
 
 export function InviteMemberDialog() {
@@ -55,96 +54,88 @@ export function InviteMemberDialog() {
   const selectedRole = roles.find((role) => role.id === selectedRoleId)
   const roleDescription = selectedRole && ROLE_DESCRIPTIONS[selectedRole.name]
 
-  const onSubmit = form.handleSubmit(
-    (input) => {
-      if (!selectedRoleId) return
-      createInvitation.mutate(
-        { invitee: input.invitee, organizationRoleIds: [selectedRoleId] },
-        {
-          onSuccess: () => {
-            setOpen(false)
-            form.reset()
-            toast.success("Invitation sent successfully.")
-          },
-        }
-      )
-    },
-    (errors) => toast.error(getFirstErrorMessage(errors))
-  )
+  const onSubmit = form.handleSubmit((input) => {
+    if (!selectedRoleId) return
+    createInvitation.mutate(
+      { invitee: input.invitee, organizationRoleIds: [selectedRoleId] },
+      {
+        onSuccess: () => {
+          setOpen(false)
+          form.reset()
+          toast.success("Invitation sent.")
+        },
+      }
+    )
+  })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <UserPlus className="h-4 w-4" />
-          Invite Member
+        <Button>
+          <UserPlus />
+          Invite member
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <form onSubmit={onSubmit}>
+      <DialogContent>
+        <form noValidate onSubmit={(event) => void onSubmit(event)}>
           <DialogHeader>
-            <DialogTitle>Invite New Member</DialogTitle>
+            <DialogTitle>Invite a member</DialogTitle>
             <DialogDescription>
-              Add a new member to your team and define their permissions.
+              They get an email with a link to join.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 space-y-4">
+          <div className="mt-5 space-y-4">
             <Controller
               name="invitee"
               control={form.control}
-              render={({ field }) => (
-                <div className="space-y-2">
-                  <Label htmlFor="invite-email">Email *</Label>
+              render={({ field, fieldState }) => (
+                <Field
+                  label="Email"
+                  htmlFor="invite-email"
+                  error={fieldState.error?.message}
+                >
                   <Input
                     {...field}
                     id="invite-email"
                     type="email"
-                    placeholder="john@example.com"
-                    required
+                    autoComplete="off"
+                    placeholder="name@company.com"
+                    aria-invalid={fieldState.invalid}
                   />
-                </div>
+                </Field>
               )}
             />
 
-            <div className="space-y-2">
-              <Label htmlFor="invite-role">Role</Label>
-              {roles.length > 0 ? (
-                <>
-                  <Controller
-                    name="organizationRoleId"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Select
-                        value={selectedRoleId}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger id="invite-role" className="w-full">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roles.map((role) => (
-                            <SelectItem key={role.id} value={role.id}>
-                              {capitalize(role.name)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {roleDescription && (
-                    <p className="text-xs text-muted-foreground">
-                      {roleDescription}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  No roles available. The member will be added without a
-                  specific role.
-                </p>
-              )}
-            </div>
+            {roles.length > 0 && (
+              <Controller
+                name="organizationRoleId"
+                control={form.control}
+                render={({ field }) => (
+                  <Field
+                    label="Role"
+                    htmlFor="invite-role"
+                    hint={roleDescription}
+                  >
+                    <Select
+                      value={selectedRoleId}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger id="invite-role" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roles.map((role) => (
+                          <SelectItem key={role.id} value={role.id}>
+                            {capitalize(role.name)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              />
+            )}
           </div>
 
           <DialogFooter className="mt-6">
@@ -159,7 +150,7 @@ export function InviteMemberDialog() {
               type="submit"
               disabled={createInvitation.isPending || !invitee.trim()}
             >
-              {createInvitation.isPending ? "Sending..." : "Send Invite"}
+              {createInvitation.isPending ? "Sending..." : "Send invitation"}
             </Button>
           </DialogFooter>
         </form>

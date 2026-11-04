@@ -25,9 +25,9 @@ export const Route = createFileRoute("/callback/")({
 function CallbackComplete() {
   return (
     <AuthCallbackCard
-      title="Authentication complete"
-      description="You can continue to Devver."
-      actionLabel="Continue"
+      title="You're signed in"
+      description="Your session is ready."
+      actionLabel="Open Devver"
     />
   )
 }
@@ -35,9 +35,9 @@ function CallbackComplete() {
 function CallbackError({ error }: ErrorComponentProps) {
   return (
     <AuthCallbackCard
-      title="Authentication failed"
+      title="Sign-in didn't finish"
       description={getErrorMessage(error)}
-      actionLabel="Return to Devver"
+      actionLabel="Try again"
     />
   )
 }

@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router"
-import { JoinInvitationCard } from "@/features/invitations/components/join-invitation-card"
+import { Logo } from "@/components/common/logo"
+import { JoinInvitation } from "@/features/invitations/components/join-invitation"
 import { joinInvitationSearchSchema } from "@/features/invitations/schemas/invitation.schema"
 
 export const Route = createFileRoute("/_protected/invitations/join/")({
@@ -11,16 +12,12 @@ function JoinInvitationPage() {
   const { invitationId } = Route.useSearch()
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-lg">
-        <Link
-          to="/"
-          className="mx-auto mb-6 flex w-fit items-center gap-1 text-foreground"
-        >
-          <img src="/favicon.png" alt="" className="h-7 w-7" />
-          <span className="text-xl font-bold tracking-widest">DEVVER</span>
+    <main className="grid min-h-dvh place-items-center px-4 py-10">
+      <div className="w-full max-w-md">
+        <Link to="/" className="mb-12 block w-fit rounded-sm">
+          <Logo />
         </Link>
-        <JoinInvitationCard invitationId={invitationId} />
+        <JoinInvitation invitationId={invitationId} />
       </div>
     </main>
   )

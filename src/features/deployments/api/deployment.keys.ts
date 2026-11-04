@@ -6,4 +6,14 @@ export const deploymentKeys = {
     [...deploymentKeys.project(organizationId, projectId), "repos"] as const,
   list: (organizationId: string | null, projectId: string) =>
     [...deploymentKeys.project(organizationId, projectId), "list"] as const,
+  databases: (
+    organizationId: string | null,
+    projectId: string,
+    engine: string
+  ) =>
+    [
+      ...deploymentKeys.project(organizationId, projectId),
+      "databases",
+      engine,
+    ] as const,
 }

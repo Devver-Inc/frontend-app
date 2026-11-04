@@ -5,7 +5,8 @@ import { ApiError, getErrorMessage } from "@/lib/api/api-error"
 declare module "@tanstack/react-query" {
   interface Register {
     // Toast shown when the request fails without a message of its own.
-    queryMeta: { errorMessage?: string }
+    // `silent`: the page shows this failure itself.
+    queryMeta: { errorMessage?: string; silent?: boolean }
     mutationMeta: { errorMessage?: string }
   }
 }
@@ -25,8 +26,10 @@ const toastErrorOnce = (message: string) => {
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     queryCache: new QueryCache({
-      onError: (error, query) =>
-        toastErrorOnce(getErrorMessage(error, query.meta?.errorMessage)),
+      onError: (error, query) => {
+        if (query.meta?.silent) return
+        toastErrorOnce(getErrorMessage(error, query.meta?.errorMessage))
+      },
     }),
     mutationCache: new MutationCache({
       onError: (error, _variables, _context, mutation) =>

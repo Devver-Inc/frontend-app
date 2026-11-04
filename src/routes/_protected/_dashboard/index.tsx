@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Building2 } from "lucide-react"
 import { PageHeader } from "@/components/common/page-header"
+import { MyInvitations } from "@/features/invitations/components/my-invitations"
 import { NoOrganizationSelected } from "@/features/organizations/components/no-organization-selected"
-import { OrganizationShortcuts } from "@/features/organizations/components/organization-shortcuts"
 import { useCurrentOrganizationId } from "@/features/organizations/hooks/use-current-organization-id"
 import { useUserOrganizations } from "@/features/organizations/hooks/use-user-organizations"
+import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog"
+import { RecentProjects } from "@/features/projects/components/recent-projects"
+import { useRecentProjects } from "@/features/projects/hooks/use-projects"
 
 export const Route = createFileRoute("/_protected/_dashboard/")({
   component: HomePage,
@@ -13,24 +15,32 @@ export const Route = createFileRoute("/_protected/_dashboard/")({
 function HomePage() {
   const currentOrganizationId = useCurrentOrganizationId()
   const { data: organizations = [] } = useUserOrganizations()
+  const { data: recentProjects } = useRecentProjects()
   const currentOrganization = organizations.find(
     ({ id }) => id === currentOrganizationId
   )
 
-  if (!currentOrganizationId) return <NoOrganizationSelected />
+  // Someone new may arrive with an invitation and no organization yet.
+  if (!currentOrganizationId) {
+    return (
+      <div className="space-y-10">
+        <MyInvitations />
+        <NoOrganizationSelected />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
+    <>
       <PageHeader
-        title={
-          currentOrganization
-            ? `Welcome to ${currentOrganization.name}`
-            : "Welcome"
-        }
-        description="Manage your organization from the sidebar."
-        icon={Building2}
+        title={currentOrganization?.name ?? "Home"}
+        // The getting started steps carry this action when there are no projects.
+        actions={recentProjects?.data.length !== 0 && <CreateProjectDialog />}
       />
-      <OrganizationShortcuts />
-    </div>
+      <div className="space-y-10">
+        <MyInvitations />
+        <RecentProjects />
+      </div>
+    </>
   )
 }

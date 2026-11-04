@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { userSchema } from "@/features/users/schemas/user.schema"
 
 export const ORGANIZATION_LOGO_MIME_TYPES = [
   "image/png",
@@ -12,6 +13,12 @@ export const organizationSchema = z.object({
   id: z.string(),
   name: z.string(),
   coverImageUrl: z.string().nullable(),
+})
+
+export const organizationGovernanceSchema = organizationSchema.extend({
+  owner: userSchema.nullable(),
+  admins: z.array(userSchema),
+  membersCount: z.number(),
 })
 
 const organizationNameSchema = z

@@ -9,7 +9,8 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import type { ReactNode } from "react"
-import { Toaster } from "sonner"
+import { MotionConfig } from "motion/react"
+import { AppToaster } from "@/components/layout/app-toaster"
 import { ThemeScript } from "@/components/layout/theme-script"
 import { ThemeSync } from "@/components/layout/theme-sync"
 import appCss from "@/styles/app.css?url"
@@ -20,10 +21,20 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: "UTF-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-      { name: "theme-color", content: "#000000" },
+      {
+        name: "theme-color",
+        media: "(prefers-color-scheme: light)",
+        content: "#f7f7f8",
+      },
+      {
+        name: "theme-color",
+        media: "(prefers-color-scheme: dark)",
+        content: "#0e0f12",
+      },
       {
         name: "description",
-        content: "Web site created using create-tsrouter-app",
+        content:
+          "Deploy every branch of your projects, then review them with your team.",
       },
       { title: "Devver" },
     ],
@@ -40,15 +51,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootLayout() {
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <ThemeSync />
       {/* SPA mode serves one prerendered shell for every URL: pages only
           render once hydrated, so the shell matches whatever route loads. */}
       <ClientOnly>
         <Outlet />
       </ClientOnly>
-      <Toaster richColors position="bottom-right" />
-    </>
+      <AppToaster />
+    </MotionConfig>
   )
 }
 

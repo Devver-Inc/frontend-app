@@ -30,7 +30,7 @@ export function AddProjectMembersDialog({ project }: { project: Project }) {
   const onAdd = () =>
     addProjectMembers.mutate(selectedIds, {
       onSuccess: () => {
-        toast.success("Members added to project.")
+        toast.success("Members added.")
         setOpen(false)
         setSelectedIds([])
       },
@@ -39,16 +39,16 @@ export function AddProjectMembersDialog({ project }: { project: Project }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-1.5">
-          <UserPlus className="h-4 w-4" />
-          Add Members
+        <Button size="sm" variant="outline">
+          <UserPlus />
+          Add members
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add team members</DialogTitle>
+          <DialogTitle>Add members</DialogTitle>
           <DialogDescription>
-            Select organization members to grant project access.
+            They can open the project, deploy, and comment.
           </DialogDescription>
         </DialogHeader>
 
@@ -56,8 +56,8 @@ export function AddProjectMembersDialog({ project }: { project: Project }) {
           members={availableMembers}
           selectedIds={selectedIds}
           onChange={setSelectedIds}
-          emptyMessage="No available members to add."
-          className="max-h-72 space-y-2 overflow-y-auto pr-1"
+          emptyMessage="Everyone in the organization is already on this project."
+          className="max-h-72 overflow-y-auto"
         />
 
         <DialogFooter>
@@ -68,7 +68,7 @@ export function AddProjectMembersDialog({ project }: { project: Project }) {
             onClick={onAdd}
             disabled={selectedIds.length === 0 || addProjectMembers.isPending}
           >
-            {addProjectMembers.isPending ? "Adding..." : "Add Members"}
+            {addProjectMembers.isPending ? "Adding…" : "Add members"}
           </Button>
         </DialogFooter>
       </DialogContent>

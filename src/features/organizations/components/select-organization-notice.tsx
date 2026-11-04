@@ -1,7 +1,18 @@
+import { Link } from "@tanstack/react-router"
+import { EmptyState } from "@/components/common/empty-state"
+import { Button } from "@/components/ui/button"
+
 export function SelectOrganizationNotice({ message }: { message: string }) {
   return (
-    <div className="flex h-[60vh] items-center justify-center">
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
+    <EmptyState
+      className="pt-10"
+      title="No organization selected"
+      description={message}
+      action={
+        <Button variant="outline" asChild>
+          <Link to="/organizations/new">Create organization</Link>
+        </Button>
+      }
+    />
   )
 }
